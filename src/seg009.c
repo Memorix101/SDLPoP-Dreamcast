@@ -2468,11 +2468,11 @@ sound_buffer_type* load_sound(int index) {
                     fp = fopen(locate_file(filename), "rb");
                 }
                 if (fp == NULL) {
-					printf("Failed to open file.\n");
+					printf("Failed to open file: %s\n", filename);
                     break;
                 }
 				if(fp){
-					printf("File opened successfully.\n");
+					printf("File opened successfully: %s\n", filename);
 				}
 
 			int error = 0;
