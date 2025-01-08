@@ -2468,31 +2468,23 @@ sound_buffer_type* load_sound(int index) {
                     fp = fopen(locate_file(filename), "rb");
                 }
                 if (fp == NULL) {
+					printf("Failed to open file.\n");
                     break;
                 }
+				if(fp){
+					printf("File opened successfully.\n");
+				}
 
-#define CUSTOM_BUFFER_SIZE (64 * 1024) // Adjust as needed
-int error = 0;
+			int error = 0;
 
-stb_vorbis_alloc alloc;
-alloc.alloc_buffer = malloc(CUSTOM_BUFFER_SIZE);
-alloc.alloc_buffer_length_in_bytes = CUSTOM_BUFFER_SIZE;
-
-if (!alloc.alloc_buffer) {
-    fprintf(stderr, "Failed to allocate custom buffer.\n");
-    return NULL;
-}
-printf("Allocator buffer: %p, buffer length: %d\n", alloc.alloc_buffer, CUSTOM_BUFFER_SIZE);
-
-stb_vorbis *decoder = stb_vorbis_open_file(fp, 1, &error, NULL);//stb_vorbis_open_file_section(fp, 1, &error, &alloc, NULL);
-if (!decoder) {
-    printf("Failed to initialize stb_vorbis decoder. Error code: %d\n", error);
-	break;
-}
-
-                fclose(fp); // Close the FILE pointer since stb_vorbis_open_filename handles file opening.
-
-free(alloc.alloc_buffer); // Free the buffer after use
+			stb_vorbis *decoder = stb_vorbis_open_file(fp, 1, &error, NULL);
+			if (!decoder) {
+    			printf("Failed to initialize stb_vorbis decoder. Error code: %d\n", error);
+				break;
+			} else {
+				printf("stb_vorbis decoder allocated!\n");
+			}
+                fclose(fp);
 
                 result = malloc(sizeof(sound_buffer_type));
                 result->type = sound_ogg;
