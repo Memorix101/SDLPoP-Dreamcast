@@ -5091,7 +5091,7 @@ typedef file_t DC_FILE;
 #define dc_ftell(file)            ftell(file)
 #endif
 
-
+/*
 stb_vorbis *stb_vorbis_open_file_section(FILE *file, int close_on_free, int *error, const stb_vorbis_alloc *alloc, unsigned int length)
 {
     printf("stb_vorbis_open_file_section called.\n");
@@ -5106,7 +5106,7 @@ stb_vorbis *stb_vorbis_open_file_section(FILE *file, int close_on_free, int *err
     if (!alloc->alloc_buffer) {
     fprintf(stderr, "Failed to allocate memory for stb_vorbis_alloc.\n");
     return NULL;
-}
+   }
 
     stb_vorbis *f = NULL;
     stb_vorbis p;
@@ -5122,6 +5122,83 @@ stb_vorbis *stb_vorbis_open_file_section(FILE *file, int close_on_free, int *err
         vorbis_deinit(&p);
         return NULL;
     }
+    printf("File start position: %u\n", p.f_start);
+
+    // Set stream length and other parameters
+    p.stream_len = length;
+    p.close_on_free = close_on_free;
+
+    // Attempt to start the decoder
+    if (start_decoder(&p)) {
+        printf("start_decoder succeeded.\n");
+        f = vorbis_alloc(&p);
+        if (f) {
+            printf("vorbis_alloc succeeded.\n");
+            *f = p;
+
+            // Pump the first frame
+            vorbis_pump_first_frame(f);
+            printf("First frame pumped successfully.\n");
+            return f;
+        } else {
+            printf("vorbis_alloc failed: Memory allocation error.\n");
+        }
+    } else {
+        printf("start_decoder failed with error: %d\n", p.error);
+    }
+
+    // Handle failure
+    if (error) {
+        *error = p.error;
+        printf("Error code set: %d\n", *error);
+    }
+
+    vorbis_deinit(&p);
+    printf("vorbis_deinit called.\n");
+    return NULL;
+}
+*/
+
+stb_vorbis *stb_vorbis_open_file_section(FILE *file, int close_on_free, int *error, const stb_vorbis_alloc *alloc, unsigned int length)
+{
+    printf("stb_vorbis_open_file_section called.\n");
+    printf("File pointer: %p, close_on_free: %d, length: %u\n", (void *)file, close_on_free, length);
+
+    if (alloc) {
+        printf("Allocator buffer: %p, buffer length: %d\n", alloc->alloc_buffer, alloc->alloc_buffer_length_in_bytes);
+    } else {
+        printf("No custom allocator provided.\n");
+    }
+
+    if (!alloc || !alloc->alloc_buffer) {
+        fprintf(stderr, "Failed to allocate memory for stb_vorbis_alloc.\n");
+        return NULL;
+    }
+
+    stb_vorbis *f = NULL;
+    stb_vorbis p;
+
+    vorbis_init(&p, alloc);
+    p.f = file;
+
+    // Alternative to ftell: Get file descriptor and use lseek
+    int fd = fileno(file);
+    if (fd == -1) {
+        perror("fileno failed");
+        if (error) *error = VORBIS_file_open_failure;
+        vorbis_deinit(&p);
+        return NULL;
+    }
+
+    off_t file_pos = lseek(fd, 0, SEEK_CUR);
+    if (file_pos == (off_t)-1) {
+        perror("lseek failed");
+        if (error) *error = VORBIS_file_open_failure;
+        vorbis_deinit(&p);
+        return NULL;
+    }
+
+    p.f_start = (uint32_t)file_pos;
     printf("File start position: %u\n", p.f_start);
 
     // Set stream length and other parameters

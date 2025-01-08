@@ -9,9 +9,7 @@ OBJS = stb_vorbis.o main.o data.o seg000.o seg001.o seg002.o seg003.o seg004.o s
 #OBJS = mixer_ogg.o celeste.o sdl20compat.inc.o sdl12main.o romdisk.o
 KOS_ROMDISK_DIR = romdisk
 
-KOS_CFLAGS += -I../lmikmod/include -I/opt/toolchains/dc/kos/include -I/opt/toolchains/dc/kos/addons/include -I../supertux-dc-SDL_dreamhal-Fakemixer/ports/mikmod/lmikmod/include \
--I$(KOS_BASE)/kernel/arch/dreamcast/include/dc -DDREAMCAST -D_USE_MATH_DEFINES -D_THREAD_SAFE -DOSX
-
+KOS_CFLAGS += -I/opt/toolchains/dc/kos/include -I/opt/toolchains/dc/kos/addons/include -I$(KOS_BASE)/kernel/arch/dreamcast/include/dc -DDREAMCAST -std=c99 -O2 -Wall #-Werror 
 KOS_CPPFLAGS += -fexceptions -std=c++11 -fpermissive -O2
 
 # Update library paths and libraries for SDL2
@@ -28,7 +26,7 @@ rm-elf:
 	-rm -f $(TARGET) PoP-dc.cdi romdisk.*
 
 $(TARGET): $(OBJS) $(HFILES)
-	kos-cc -o $(TARGET) $(OBJS) $(OBJEXTRA) -ltremor -lkosfat -lm -lSDL2_image -lSDL2 -lSDL2main -lGL -lkosutils $(KOS_LIBS) -fno-exceptions -fno-rtti
+	kos-c++ -o $(TARGET) $(OBJS) $(OBJEXTRA) $(KOS_CFLAGS) -ltremor -lkosfat -lm -lSDL2_image -lSDL2 -lSDL2main -lGL -lkosutils $(KOS_LIBS) -fno-exceptions -fno-rtti
 	./make_cdi.sh
 
 run: $(TARGET) 

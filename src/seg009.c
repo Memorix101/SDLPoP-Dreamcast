@@ -2470,7 +2470,6 @@ sound_buffer_type* load_sound(int index) {
                 if (fp == NULL) {
                     break;
                 }
-                fclose(fp); // Close the FILE pointer since stb_vorbis_open_filename handles file opening.
 
 #define CUSTOM_BUFFER_SIZE (64 * 1024) // Adjust as needed
 int error = 0;
@@ -2485,10 +2484,13 @@ if (!alloc.alloc_buffer) {
 }
 printf("Allocator buffer: %p, buffer length: %d\n", alloc.alloc_buffer, CUSTOM_BUFFER_SIZE);
 
-stb_vorbis *decoder = stb_vorbis_open_file_section(fp, 1, &error, &alloc, CUSTOM_BUFFER_SIZE);
+stb_vorbis *decoder = stb_vorbis_open_file(fp, 1, &error, NULL);//stb_vorbis_open_file_section(fp, 1, &error, &alloc, NULL);
 if (!decoder) {
     printf("Failed to initialize stb_vorbis decoder. Error code: %d\n", error);
+	break;
 }
+
+                fclose(fp); // Close the FILE pointer since stb_vorbis_open_filename handles file opening.
 
 free(alloc.alloc_buffer); // Free the buffer after use
 
