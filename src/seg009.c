@@ -87,7 +87,7 @@ void sdlperror(const char* header) {
 	//quit(1);
 }
 
-char exe_dir[POP_MAX_PATH] = "/cd"; // rd
+char exe_dir[POP_MAX_PATH] = ""; // rd
 bool found_exe_dir = true; // rd
 #if ! (defined WIN32 || _WIN32 || WIN64 || _WIN64 || DREAMCAST)
 char home_dir[POP_MAX_PATH];
@@ -151,7 +151,7 @@ const char* find_first_file_match(char* dst, int size, char* format, const char*
 	//find_exe_dir();
 #if defined WIN32 || _WIN32 || WIN64 || _WIN64 || DREAMCAST
 	//printf("beep d:%s f:%s\n", dst, filename);
-	snprintf_check(dst, size, format, "/cd", filename);
+	snprintf_check(dst, size, format, "/cd", filename); // rd
 	printf("beep dst:%s f:%s file:%s\n", dst, format, filename);
 #else
 	find_home_dir();
@@ -2919,12 +2919,12 @@ void set_gr_mode(byte grmode) {
 #endif
 	}
 
-	SDL_Surface* icon = IMG_Load(locate_file("data/icon.png"));
+	/*SDL_Surface* icon = IMG_Load(locate_file("data/icon.png"));
 	if (icon == NULL) {
 		sdlperror("set_gr_mode: Could not load icon");
 	} else {
 		SDL_SetWindowIcon(window_, icon);
-	}
+	}*/
 
 	lcd_test();
 	snd_init();
