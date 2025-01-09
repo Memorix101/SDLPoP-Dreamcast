@@ -41,7 +41,16 @@ typedef file_t DC_FILE;
 #define dc_ftell(file)            ftell(file)
 #endif
 
+//setup vmu display image
+#include <dc/maple.h>
+#include <dc/maple/controller.h>
+#include <dc/maple/vmu.h>
+#include "vmu0.xpm"
+#include <adx/adx.h> /* ADX Decoder Library */
+#include <adx/snddrv.h> /* Direct Access to Sound Driver */
 #include <oggvorbis/sndoggvorbis.h>
+#include <dc/sound/sound.h>
+#include <dc/sound/sfxmgr.h>
 
 #ifdef __cplusplus
 extern "C" {

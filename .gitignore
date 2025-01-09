@@ -90,3 +90,7 @@ screenshots/
 *.cfg
 *.Identifier
 *.img
+src/flycast.log
+*.log
+*.cdi
+*.log

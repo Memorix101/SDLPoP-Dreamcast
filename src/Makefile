@@ -3,7 +3,7 @@
 # Copyright (C) 2024
 #   
 
-TARGET = PoP.elf
+TARGET = pop.elf
 HFILES = common.h config.h data.h proto.h types.h
 OBJS = stb_vorbis.o main.o data.o seg000.o seg001.o seg002.o seg003.o seg004.o seg005.o seg006.o seg007.o seg008.o seg009.o seqtbl.o replay.o options.o lighting.o screenshot.o menu.o midi.o opl3.o romdisk.o
 #OBJS = mixer_ogg.o celeste.o sdl20compat.inc.o sdl12main.o romdisk.o
@@ -23,10 +23,10 @@ clean: rm-elf
 	-rm -f $(OBJS)
 
 rm-elf:
-	-rm -f $(TARGET) PoP-dc.cdi romdisk.*
+	-rm -f $(TARGET) pop.elf sdlpop-dc.cdi romdisk.*
 
 $(TARGET): $(OBJS) $(HFILES)
-	kos-c++ -o $(TARGET) $(OBJS) $(OBJEXTRA) $(KOS_CFLAGS) -ltremor -lkosfat -lm -lSDL2_image -lSDL2 -lSDL2main -lGL -lkosutils $(KOS_LIBS) -fno-exceptions -fno-rtti
+	kos-c++ -o $(TARGET) $(OBJS) $(OBJEXTRA) $(KOS_CFLAGS) -lADX -ltremor -lkosfat -lm -lSDL2_image -lSDL2 -lSDL2main -lGL -lkosutils $(KOS_LIBS) -fno-exceptions -fno-rtti
 	./make_cdi.sh
 
 run: $(TARGET) 

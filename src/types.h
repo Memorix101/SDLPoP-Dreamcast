@@ -594,6 +594,7 @@ typedef struct sound_buffer_type {
 		midi_type midi;
 		ogg_type ogg;
 		converted_audio_type converted;
+		char filename[256];
 	};
 } sound_buffer_type;
 

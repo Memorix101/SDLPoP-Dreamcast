@@ -1977,9 +1977,16 @@ void stop_ogg(void) {
 	SDL_UnlockAudio();
 }
 
+sfxhnd_t sfx_wav;
+
 // seg009:7214
 void stop_sounds() {
 	// stub
+	printf("stop_sounds\n");
+	//sndoggvorbis_stop();
+	snd_sfx_stop_all();
+	//snd_sfx_unload(sfx_wav);
+	snd_sfx_unload_all();
 	stop_digi();
 	stop_midi();
 	speaker_sound_stop();
@@ -2464,7 +2471,8 @@ sound_buffer_type* load_sound(int index) {
                     fp = fopen(filename, "rb");
                 }
                 if (fp == NULL && !skip_normal_data_files) {
-                    snprintf_check(filename, sizeof(filename), "/cd/data/music/%s.ogg", sound_name(index));
+                    //snprintf_check(filename, sizeof(filename), "/cd/data/music/%s.ogg", sound_name(index));
+                    snprintf_check(filename, sizeof(filename), "/cd/data/music/wav/%s.wav", sound_name(index));
                     fp = fopen(locate_file(filename), "rb");
                 }
                 if (fp == NULL) {
@@ -2475,7 +2483,7 @@ sound_buffer_type* load_sound(int index) {
 					printf("File opened successfully: %s\n", filename);
 				}
 
-			int error = 0;
+			/*int error = 0;
 
 			stb_vorbis *decoder = stb_vorbis_open_file(fp, 1, &error, NULL);
 			if (!decoder) {
@@ -2483,14 +2491,19 @@ sound_buffer_type* load_sound(int index) {
 				break;
 			} else {
 				printf("stb_vorbis decoder allocated!\n");
-			}
+			}*/
                 fclose(fp);
 
                 result = malloc(sizeof(sound_buffer_type));
-                result->type = sound_ogg;
-                result->ogg.total_length = stb_vorbis_stream_length_in_samples(decoder) * sizeof(short);
-                result->ogg.file_contents = NULL; // No file_contents since it's handled by stb_vorbis_open_filename.
-                result->ogg.decoder = decoder;
+
+				strncpy(result->filename, &filename, sizeof(result->filename) - 1);
+				result->filename[sizeof(result->filename) - 1] = '\0'; // Ensure null-termination
+				printf("Filename: %s\n", result->filename);
+
+                result->type = sound_midi;
+                //result->ogg.total_length = stb_vorbis_stream_length_in_samples(decoder) * sizeof(short);
+                //result->ogg.file_contents = NULL; // No file_contents since it's handled by stb_vorbis_open_filename.
+                //result->ogg.decoder = decoder;
 
             } while (0); // do once (breakable block)
         }
@@ -2636,6 +2649,7 @@ void free_sound(sound_buffer_type* buffer) {
 	free(buffer);
 }
 
+
 // seg009:7220
 void play_sound_from_buffer(sound_buffer_type* buffer) {
 
@@ -2660,6 +2674,11 @@ void play_sound_from_buffer(sound_buffer_type* buffer) {
 		break;
 		case sound_midi:
 			//play_midi_sound(buffer);
+			printf("Playing ... %s\n", buffer->filename);
+			//sndoggvorbis_stop();
+			//sndoggvorbis_start(buffer->filename, 0);
+			sfx_wav = snd_sfx_load(buffer->filename);
+			snd_sfx_play(sfx_wav, 255, 128);
 		break;
 		case sound_ogg:
 			play_ogg_sound(buffer);
@@ -2764,13 +2783,6 @@ void init_scaling(void) {
 	}
 }
 
-//setup vmu display image
-#include <dc/maple.h>
-#include <dc/maple/controller.h>
-#include <dc/maple/vmu.h>
-#include "vmu0.xpm"
-int vmu_task = 0; //bool 
-
 /* LCD Test: this will do a grayscale seperation into several "frames" and
    flip through them quickly to give the illusion of grayscale on the LCD
    display. */
@@ -2822,6 +2834,7 @@ void lcd_gs_setup() {
     }
 }
 
+int vmu_task = 0; //bool 
 // This performs the actual magic
 void lcd_test() {
     lcd_gs_setup();
@@ -2849,6 +2862,9 @@ void lcd_test() {
 
 // seg009:38ED
 void set_gr_mode(byte grmode) {
+	SDL_SetHint(SDL_HINT_VIDEO_DOUBLE_BUFFER, "1");
+    //SDL_SetHint(SDL_HINT_DC_VIDEO_MODE, "SDL_DC_TEXTURED_VIDEO");
+    SDL_SetHint(SDL_HINT_DC_VIDEO_MODE, "SDL_DC_DMA_VIDEO");
 #ifdef SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING
 	SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
 #endif
@@ -2926,8 +2942,10 @@ void set_gr_mode(byte grmode) {
 		SDL_SetWindowIcon(window_, icon);
 	}*/
 
-	lcd_test();
 	snd_init();
+    snd_stream_init();
+    sndoggvorbis_init();
+	lcd_test();
 	apply_aspect_ratio();
 	window_resized();
 
@@ -3764,6 +3782,13 @@ void process_events() {
  		joy_button_states[JOYINPUT_DPAD_DOWN] |= KEYSTATE_HELD | KEYSTATE_HELD_NEW;
     } else {
 		joy_button_states[JOYINPUT_DPAD_DOWN] &= ~KEYSTATE_HELD; 
+	}
+
+	if (state->buttons & CONT_X) 
+    {
+ 		joy_button_states[JOYINPUT_X] |= KEYSTATE_HELD | KEYSTATE_HELD_NEW;
+    } else {
+		joy_button_states[JOYINPUT_X] &= ~KEYSTATE_HELD; 
 	}
   }
 

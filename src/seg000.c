@@ -2348,7 +2348,7 @@ const char* splash_text_1 = "SDLPoP " SDLPOP_VERSION;
 		"Press any key to continue...";*/
 		const char* splash_text_2 = 
 		"This is an alpha version of SDLPoP for Dreamcast\n"
-		"The game is functional but saving and music is not implemented yet\n"
+		"The game is functional but saving is not implemented yet\n"
 		"\n"
 		"Thanks for playing!\n\n"
 		"PRESS ANY BUTTON TO CONTINUE\n";
@@ -2356,9 +2356,12 @@ const char* splash_text_1 = "SDLPoP " SDLPOP_VERSION;
 void show_splash() {
 	if (!enable_info_screen || start_level >= 0) return;
 
-    snd_stream_init();
-    sndoggvorbis_init();
-	sndoggvorbis_start("/cd/data/music/potion.ogg", 0);
+    //snd_stream_init();
+    //sndoggvorbis_init();
+	//sndoggvorbis_start("/cd/data/music/potion.ogg", 0);
+	//adx_dec( "/cd/data/music/adx/potion.adx", 0);
+	sfxhnd_t beep1 = snd_sfx_load("/cd/data/music/wav/potion.wav");
+	snd_sfx_play(beep1, 255, 128);
 
 	current_target_surface = onscreen_surface_;
 	draw_rect(&screen_rect, color_0_black);
@@ -2370,7 +2373,6 @@ void show_splash() {
 	do {
 		idle();
 		key = key_test_quit();
-
 		bool joy_input = 0;
 		for (int i = 0; i < JOYINPUT_NUM; i++) {
 			if (joy_button_states[i] & KEYSTATE_HELD) {
@@ -2382,6 +2384,9 @@ void show_splash() {
 			for (int i = 0; i < JOYINPUT_NUM; i++) {
 				joy_button_states[i] = 0;
 			}
+			snd_sfx_stop_all();
+			//snd_sfx_unload(beep1);
+			snd_sfx_unload_all();
 			key_states[SDL_SCANCODE_LSHIFT] |= KEYSTATE_HELD; // close the splash screen using the gamepad
 		}
 		
