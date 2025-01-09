@@ -54,7 +54,8 @@ make
 
 ## Note
 
-- Currently the game is only playable on an emulator like Flycast or DEMUL
+- Currently, the game is only playable on an emulator like Flycast or DEMUL
+- Some music track do not play correctly
 - Unstable; may crash
 
 ## Links
