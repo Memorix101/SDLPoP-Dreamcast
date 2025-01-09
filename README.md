@@ -55,7 +55,7 @@ make
 ## Note
 
 - Currently, the game is only playable on an emulator like Flycast or DEMUL
-- Some music track do not play correctly
+- Some music tracks do not play correctly (correct speed/pitch and timing is off)
 - Unstable; may crash
 
 ## Links
