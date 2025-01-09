@@ -1977,16 +1977,21 @@ void stop_ogg(void) {
 	SDL_UnlockAudio();
 }
 
-sfxhnd_t sfx_wav;
+//sfxhnd_t sfx_wav;
+wav_stream_hnd_t sfx_wav;
 
 // seg009:7214
 void stop_sounds() {
 	// stub
 	printf("stop_sounds\n");
 	//sndoggvorbis_stop();
-	snd_sfx_stop_all();
+	//snd_sfx_stop_all();
 	//snd_sfx_unload(sfx_wav);
-	snd_sfx_unload_all();
+	//snd_sfx_unload_all();
+	if(wav_is_playing(sfx_wav)){
+		wav_stop(sfx_wav);
+		wav_destroy(sfx_wav);
+	}
 	stop_digi();
 	stop_midi();
 	speaker_sound_stop();
@@ -2472,7 +2477,7 @@ sound_buffer_type* load_sound(int index) {
                 }
                 if (fp == NULL && !skip_normal_data_files) {
                     //snprintf_check(filename, sizeof(filename), "/cd/data/music/%s.ogg", sound_name(index));
-                    snprintf_check(filename, sizeof(filename), "/cd/data/music/wav/%s.wav", sound_name(index));
+                    snprintf_check(filename, sizeof(filename), "/cd/data/music/wav_output/%s.wav", sound_name(index));
                     fp = fopen(locate_file(filename), "rb");
                 }
                 if (fp == NULL) {
@@ -2677,8 +2682,15 @@ void play_sound_from_buffer(sound_buffer_type* buffer) {
 			printf("Playing ... %s\n", buffer->filename);
 			//sndoggvorbis_stop();
 			//sndoggvorbis_start(buffer->filename, 0);
-			sfx_wav = snd_sfx_load(buffer->filename);
-			snd_sfx_play(sfx_wav, 255, 128);
+			//sfx_wav = snd_sfx_load(buffer->filename);
+			//snd_sfx_play(sfx_wav, 255, 128);
+			if(wav_is_playing(sfx_wav)){
+				wav_stop(sfx_wav);
+				wav_destroy(sfx_wav);
+			}
+			sfx_wav = wav_create(buffer->filename, 0);
+			wav_volume(sfx_wav, 240);
+			wav_play(sfx_wav);
 		break;
 		case sound_ogg:
 			play_ogg_sound(buffer);
@@ -2944,7 +2956,8 @@ void set_gr_mode(byte grmode) {
 
 	snd_init();
     snd_stream_init();
-    sndoggvorbis_init();
+    //sndoggvorbis_init();
+	wav_init();
 	lcd_test();
 	apply_aspect_ratio();
 	window_resized();
