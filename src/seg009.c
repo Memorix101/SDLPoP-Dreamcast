@@ -3743,12 +3743,50 @@ cont_state_t *state;
 int START_BUTTON_DOWN = 0; // bool
 int START_BUTTON = 0; // button state bool
 
+	#include <stdio.h>
+#include <stdint.h>
+#include <kos/init.h>
+#include <arch/arch.h>
+
+void print_memory_info() {
+    void* base = page_phys_base; // Start of available memory
+    void* top = _arch_mem_top;   // End of available memory (exclusive)
+    void* current = sbrk(0);      // Current break (end of allocated heap)
+
+    /*printf("Memory Base: %p\n", base);
+    printf("Memory Top:  %p\n", top);
+    printf("Current Heap End: %p\n", current);*/
+
+    uint32_t total_memory = (uintptr_t)top - (uintptr_t)base;
+    uint32_t used_memory = (uintptr_t)current - (uintptr_t)base;
+    uint32_t free_memory = total_memory - used_memory;
+
+    /*printf("Total Memory: %u bytes\n", total_memory);
+    printf("Used Memory:  %u bytes\n", used_memory);
+    printf("Free Memory:  %u bytes\n", free_memory);*/
+
+	// Convert to megabytes
+    float total_memory_mb = total_memory / (1024.0f * 1024.0f);
+    float used_memory_mb = used_memory / (1024.0f * 1024.0f);
+    float free_memory_mb = free_memory / (1024.0f * 1024.0f);
+
+    // Print memory information
+    printf("Memory Base:       %p\n", base);
+    printf("Memory Top:        %p\n", top);
+    printf("Current Heap End:  %p\n", current);
+    printf("Total Memory:      %u bytes (%.2f MB)\n", total_memory, total_memory_mb);
+    printf("Used Memory:       %u bytes (%.2f MB)\n", used_memory, used_memory_mb);
+    printf("Free Memory:       %u bytes (%.2f MB)\n", free_memory, free_memory_mb);
+}
+
 void process_events() {
 	// Process all events in the queue.
 	// Previously, this procedure would wait for *one* event and process it, then return.
 	// Much like the x86 HLT instruction.
 	// (We still want to process all events in the queue. For instance, there might be
 	// simultaneous SDL2 KEYDOWN and TEXTINPUT events.)
+	
+	//print_memory_info();
 
   //dc controls
   cont = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
