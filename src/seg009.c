@@ -1968,17 +1968,21 @@ void stop_digi(void) {
 // Decoder for the currently playing OGG sound. (This also holds the playback position.)
 stb_vorbis* ogg_decoder;
 
-void stop_ogg(void) {
-	SDL_PauseAudio(1);
-	if (!ogg_playing) return;
-	ogg_playing = 0;
-	SDL_LockAudio();
-	ogg_decoder = NULL;
-	SDL_UnlockAudio();
-}
-
 //sfxhnd_t sfx_wav;
 wav_stream_hnd_t sfx_wav;
+
+void stop_ogg(void) {
+	//SDL_PauseAudio(1);
+	if (!ogg_playing) return;
+	ogg_playing = 0;
+	//SDL_LockAudio();
+	//ogg_decoder = NULL;
+	//SDL_UnlockAudio();
+	if(wav_is_playing(sfx_wav)){
+		wav_stop(sfx_wav);
+		wav_destroy(sfx_wav);
+	}
+}
 
 // seg009:7214
 void stop_sounds() {
@@ -2142,6 +2146,10 @@ void ogg_callback(void *userdata, Uint8 *stream, int len) {
 		event.type = SDL_USEREVENT;
 		event.user.code = userevent_SOUND;
 		ogg_playing = 0;
+		if(wav_is_playing(sfx_wav)){
+			wav_stop(sfx_wav);
+			wav_destroy(sfx_wav);
+		}
 		SDL_PushEvent(&event);
 	}
 }
@@ -2313,7 +2321,7 @@ sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer);
 					fp = fopen(filename, "rb");
 				}
 				if (fp == NULL && !skip_normal_data_files) {
-					snprintf_check(filename, sizeof(filename), "/cd/data/music/%s.ogg", sound_name(index));
+					snprintf_check(filename, sizeof(filename), "/cd/data/music/ogg/%s.ogg", sound_name(index));
 					fp = fopen(locate_file(filename), "rb");
 				}
 				if (fp == NULL) {
@@ -2326,9 +2334,14 @@ sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer);
 				size_t file_size = (size_t) MAX(0, info.st_size);
 				byte* file_contents = malloc(file_size);
 				if (fread(file_contents, 1, file_size, fp) != file_size) {
+					 fprintf(stderr, "Failed to read file contents: expected %zu, got less.\n", file_size);
 					free(file_contents);
 					fclose(fp);
 					break;
+				}
+				if (file_contents == NULL) {
+    				fprintf(stderr, "Failed to allocate memory for file contents.\n");
+    				break;
 				}
 				fclose(fp);
 
@@ -2338,7 +2351,8 @@ sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer);
 				int error = 0;
 				stb_vorbis* decoder = stb_vorbis_open_memory(file_contents, (int)file_size, &error, NULL);
 				if (decoder == NULL) {
-					printf("Error %d when creating decoder from file \"%s\"!\n", error, filename);
+					//printf("Error %d when creating decoder from file \"%s\"!\n", error, filename);
+					   fprintf(stderr, "Failed to decode file: error=%d, filename=%s, file_size=%zu\n", error, filename, file_size);
 					free(file_contents);
 					break;
 				}
@@ -2462,7 +2476,6 @@ if (!decoder) {
     return result;
 }*/
 
-
 sound_buffer_type* load_sound(int index) {
     sound_buffer_type* result = NULL;
     init_digi();
@@ -2505,7 +2518,7 @@ sound_buffer_type* load_sound(int index) {
 				result->filename[sizeof(result->filename) - 1] = '\0'; // Ensure null-termination
 				printf("Filename: %s\n", result->filename);
 
-                result->type = sound_midi;
+                result->type = sound_ogg;
                 //result->ogg.total_length = stb_vorbis_stream_length_in_samples(decoder) * sizeof(short);
                 //result->ogg.file_contents = NULL; // No file_contents since it's handled by stb_vorbis_open_filename.
                 //result->ogg.decoder = decoder;
@@ -2534,12 +2547,20 @@ void play_ogg_sound(sound_buffer_type *buffer) {
 	stop_sounds();
 
 	// Need to rewind the music, or else the decoder might continue where it left off, the last time this sound played.
-	stb_vorbis_seek_start(buffer->ogg.decoder);
+	/*stb_vorbis_seek_start(buffer->ogg.decoder);
 
 	SDL_LockAudio();
 	ogg_decoder = buffer->ogg.decoder;
 	SDL_UnlockAudio();
-	SDL_PauseAudio(0);
+	SDL_PauseAudio(0);*/
+
+	if(wav_is_playing(sfx_wav)){
+		wav_stop(sfx_wav);
+		wav_destroy(sfx_wav);
+	}
+	sfx_wav = wav_create(buffer->filename, 0);
+	wav_volume(sfx_wav, 255);
+	wav_play(sfx_wav);
 
 	ogg_playing = 1;
 }
@@ -2678,21 +2699,11 @@ void play_sound_from_buffer(sound_buffer_type* buffer) {
 			play_digi_sound(buffer);
 		break;
 		case sound_midi:
-			//play_midi_sound(buffer);
-			printf("Playing ... %s\n", buffer->filename);
-			//sndoggvorbis_stop();
-			//sndoggvorbis_start(buffer->filename, 0);
-			//sfx_wav = snd_sfx_load(buffer->filename);
-			//snd_sfx_play(sfx_wav, 255, 128);
-			if(wav_is_playing(sfx_wav)){
-				wav_stop(sfx_wav);
-				wav_destroy(sfx_wav);
-			}
-			sfx_wav = wav_create(buffer->filename, 0);
-			wav_volume(sfx_wav, 240);
-			wav_play(sfx_wav);
+			play_midi_sound(buffer);
+			//printf("Playing ... %s\n", buffer->filename);
 		break;
 		case sound_ogg:
+			printf("Playing ... %s\n", buffer->filename);
 			play_ogg_sound(buffer);
 		break;
 		default:
@@ -3800,6 +3811,22 @@ void process_events() {
 	// simultaneous SDL2 KEYDOWN and TEXTINPUT events.)
 	
 	//print_memory_info();
+
+		// Push an event if the sound has ended.
+	if(!wav_is_playing(sfx_wav)){			
+			//wav_stop(sfx_wav);
+			//wav_destroy(sfx_wav);
+		//printf("wav: sound ended\n");
+		SDL_Event event;
+		memset(&event, 0, sizeof(event));
+		event.type = SDL_USEREVENT;
+		event.user.code = userevent_SOUND;
+		ogg_playing = 0;
+		SDL_PushEvent(&event);
+	}
+	else {
+		//printf("wav is playing...\n");
+	}
 
   //dc controls
   cont = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
