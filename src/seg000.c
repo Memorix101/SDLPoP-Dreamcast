@@ -2360,8 +2360,8 @@ void show_splash() {
     //sndoggvorbis_init();
 	//sndoggvorbis_start("/cd/data/music/potion.ogg", 0);
 	//adx_dec( "/cd/data/music/adx/potion.adx", 0);
-	sfxhnd_t beep1 = snd_sfx_load("/cd/data/music/wav/potion.wav");
-	snd_sfx_play(beep1, 255, 128);
+	sfxhnd_t beep1 = snd_sfx_load("/cd/data/music/wav_output/potion.wav");
+	snd_sfx_play(beep1, 255, 255);
 
 	current_target_surface = onscreen_surface_;
 	draw_rect(&screen_rect, color_0_black);
