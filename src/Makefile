@@ -23,7 +23,7 @@ clean: rm-elf
 	-rm -f $(OBJS)
 
 rm-elf:
-	-rm -f $(TARGET) pop.elf sdlpop-dc.cdi romdisk.*
+	-rm -f $(TARGET) pop.elf sdl2_pop-dc.cdi romdisk.*
 
 $(TARGET): $(OBJS) $(HFILES)
 	kos-c++ -o $(TARGET) $(OBJS) $(OBJEXTRA) $(KOS_CFLAGS) -lwav -lSDL2_image -lSDL2 -lSDL2main -lGL -lkosutils $(KOS_LIBS) -fno-exceptions -fno-rtti

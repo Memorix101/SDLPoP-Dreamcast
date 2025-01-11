@@ -1992,10 +1992,6 @@ void stop_sounds() {
 	//snd_sfx_stop_all();
 	//snd_sfx_unload(sfx_wav);
 	//snd_sfx_unload_all();
-	if(wav_is_playing(sfx_wav)){
-		wav_stop(sfx_wav);
-		wav_destroy(sfx_wav);
-	}
 	stop_digi();
 	stop_midi();
 	speaker_sound_stop();
@@ -2140,7 +2136,7 @@ void ogg_callback(void *userdata, Uint8 *stream, int len) {
 	}
 	// Push an event if the sound has ended.
 	if (samples_filled == 0) {
-		//printf("ogg_callback(): sound ended\n");
+		printf("ogg_callback(): sound ended\n");
 		SDL_Event event;
 		memset(&event, 0, sizeof(event));
 		event.type = SDL_USEREVENT;
@@ -2540,6 +2536,30 @@ sound_buffer_type* load_sound(int index) {
     return result;
 }
 
+static pthread_t ogg_thread;
+static int ogg_thread_running = 0;
+
+// Thread function to monitor playback
+void* ogg_watch_thread(void* arg) {
+    while (ogg_playing) {
+        if (!wav_is_playing(sfx_wav)) {
+			printf("finished playback ..\n");
+            ogg_playing = 0;
+        } else {
+			//printf("playback ..\n");
+		}
+        usleep(100000); // Check every 100ms
+    }
+
+    // Clean up after playback ends
+    if (sfx_wav) {
+        wav_stop(sfx_wav);
+        wav_destroy(sfx_wav);
+        sfx_wav = NULL;
+    }
+    ogg_thread_running = 0;
+    return NULL;
+}
 
 void play_ogg_sound(sound_buffer_type *buffer) {
 	init_digi();
@@ -2563,6 +2583,20 @@ void play_ogg_sound(sound_buffer_type *buffer) {
 	wav_play(sfx_wav);
 
 	ogg_playing = 1;
+
+	usleep(100000); // wait a moment for wav_is_playing to update
+
+	if (!wav_is_playing(sfx_wav)) {
+   	 	ogg_playing = 0;
+    	printf("Sound not playing. Playback may have failed.\n");
+	} else {
+    	printf("Sound is playing as expected.\n");
+		// Start the thread to monitor playback if not already running
+   		if (!ogg_thread_running) {
+        	ogg_thread_running = 1;
+        	pthread_create(&ogg_thread, NULL, ogg_watch_thread, NULL);
+    	}
+	}
 }
 
 int wave_version = -1;
@@ -3811,21 +3845,6 @@ void process_events() {
 	// simultaneous SDL2 KEYDOWN and TEXTINPUT events.)
 	
 	//print_memory_info();
-
-		// Push an event if the sound has ended.
-	if(wav_is_playing(sfx_wav)){			
-			//wav_stop(sfx_wav);
-			//wav_destroy(sfx_wav);
-	} else if(ogg_playing == 1) {
-		//printf("wav is playing...\n");
-		printf("wav: sound ended\n");
-		SDL_Event event;
-		memset(&event, 0, sizeof(event));
-		event.type = SDL_USEREVENT;
-		event.user.code = userevent_SOUND;
-		ogg_playing = 0;
-		SDL_PushEvent(&event);
-	}
 
   //dc controls
   cont = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
