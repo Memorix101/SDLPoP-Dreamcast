@@ -51,6 +51,7 @@ typedef file_t DC_FILE;
 #include <dc/sound/sound.h>
 #include <dc/sound/sfxmgr.h>
 #include <wav/sndwav.h>
+#include "util.h";
 
 #ifdef __cplusplus
 extern "C" {
