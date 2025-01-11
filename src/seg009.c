@@ -2112,7 +2112,7 @@ void digi_callback(void *userdata, Uint8 *stream, int len) {
 }
 
 void ogg_callback(void *userdata, Uint8 *stream, int len) {
-	int output_channels = digi_audiospec->channels;
+	/*int output_channels = digi_audiospec->channels;
 	int bytes_per_sample = sizeof(short) * output_channels;
 	int samples_requested = len / bytes_per_sample;
 
@@ -2147,7 +2147,7 @@ void ogg_callback(void *userdata, Uint8 *stream, int len) {
 			wav_destroy(sfx_wav);
 		}
 		SDL_PushEvent(&event);
-	}
+	}*/
 }
 
 #ifdef USE_FAST_FORWARD
@@ -2592,10 +2592,10 @@ void play_ogg_sound(sound_buffer_type *buffer) {
 	} else {
     	printf("Sound is playing as expected.\n");
 		// Start the thread to monitor playback if not already running
-   		if (!ogg_thread_running) {
+   		/*if (!ogg_thread_running) {
         	ogg_thread_running = 1;
         	pthread_create(&ogg_thread, NULL, ogg_watch_thread, NULL);
-    	}
+    	}*/
 	}
 }
 
@@ -3845,6 +3845,21 @@ void process_events() {
 	// simultaneous SDL2 KEYDOWN and TEXTINPUT events.)
 	
 	//print_memory_info();
+	
+	// Push an event if the sound has ended.
+	if(wav_is_playing(sfx_wav)){			
+			//wav_stop(sfx_wav);
+			//wav_destroy(sfx_wav);
+	} else if(!wav_is_playing(sfx_wav)) {
+		//printf("wav is playing...\n");
+		//printf("wav: sound ended\n");
+		SDL_Event event;
+		memset(&event, 0, sizeof(event));
+		event.type = SDL_USEREVENT;
+		event.user.code = userevent_SOUND;
+		ogg_playing = 0;
+		SDL_PushEvent(&event);
+	}
 
   //dc controls
   cont = maple_enum_type(0, MAPLE_FUNC_CONTROLLER);
