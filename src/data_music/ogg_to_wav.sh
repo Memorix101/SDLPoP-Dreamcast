@@ -19,8 +19,8 @@ for file in "$INPUT_DIR"/*.ogg; do
         output_file="$OUTPUT_DIR/$filename.wav"
         
         # Convert the OGG file to WAV format
-        ffmpeg -i "$file" -vn -c:a pcm_s16le -ar 44100 -ac 2 "$output_file"
-        #ffmpeg -i "$file" -acodec adpcm_yamaha -ac 2 "$output_file"
+        #ffmpeg -i "$file" -vn -c:a pcm_s16le -ar 44100 -ac 2 "$output_file"
+        ffmpeg -i "$file" -acodec adpcm_yamaha -ac 2 "$output_file"
         
         if [[ $? -eq 0 ]]; then
             echo "Converted: $file -> $output_file"

@@ -3813,19 +3813,18 @@ void process_events() {
 	//print_memory_info();
 
 		// Push an event if the sound has ended.
-	if(!wav_is_playing(sfx_wav)){			
+	if(wav_is_playing(sfx_wav)){			
 			//wav_stop(sfx_wav);
 			//wav_destroy(sfx_wav);
-		//printf("wav: sound ended\n");
+	} else if(ogg_playing == 1) {
+		//printf("wav is playing...\n");
+		printf("wav: sound ended\n");
 		SDL_Event event;
 		memset(&event, 0, sizeof(event));
 		event.type = SDL_USEREVENT;
 		event.user.code = userevent_SOUND;
 		ogg_playing = 0;
 		SDL_PushEvent(&event);
-	}
-	else {
-		//printf("wav is playing...\n");
 	}
 
   //dc controls
