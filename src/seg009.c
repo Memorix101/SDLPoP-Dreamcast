@@ -1980,7 +1980,7 @@ void stop_ogg(void) {
 	//SDL_UnlockAudio();
 	if(wav_is_playing(sfx_wav)){
 		wav_stop(sfx_wav);
-		wav_destroy(sfx_wav);
+		//wav_destroy(sfx_wav);
 	}
 }
 
@@ -2922,6 +2922,7 @@ void set_gr_mode(byte grmode) {
 	SDL_SetHint(SDL_HINT_VIDEO_DOUBLE_BUFFER, "1");
     //SDL_SetHint(SDL_HINT_DC_VIDEO_MODE, "SDL_DC_TEXTURED_VIDEO");
     SDL_SetHint(SDL_HINT_DC_VIDEO_MODE, "SDL_DC_DMA_VIDEO");
+	//SDL_setenv("SDL_AUDIODRIVER", "dummy", 1);
 #ifdef SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING
 	SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
 #endif
