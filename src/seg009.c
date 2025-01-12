@@ -2784,7 +2784,8 @@ void init_overlay(void) {
 	static bool initialized = false;
 	if (!initialized) {
 		overlay_surface = SDL_CreateRGBSurface(0, 320, 200, 32, Rmsk, Gmsk, Bmsk, Amsk);
-		merged_surface = SDL_CreateRGBSurface(0, 320, 200, 24, Rmsk, Gmsk, Bmsk, 0);
+		//merged_surface = SDL_CreateRGBSurface(0, 320, 200, 32, Rmsk, Gmsk, Bmsk, 0);
+		merged_surface = SDL_CreateRGBSurface(0, 320, 200, 32, Bmsk, Gmsk, Rmsk, 0); // pause menu
 		initialized = true;
 	}
 }
@@ -3406,6 +3407,8 @@ image_type* method_3_blit_mono(image_type* image,int xpos,int ypos,int blitter,b
 		quit(1);
 	}
 	SDL_Surface* colored_image = SDL_ConvertSurfaceFormat(image, SDL_PIXELFORMAT_ARGB8888, 0);
+
+	//printf("method_3_blit_mono %dx%d\n", w, h);
 
 	SDL_SetSurfaceBlendMode(colored_image, SDL_BLENDMODE_NONE);
 	/* Causes problems with SDL 2.0.5 (see #105)
