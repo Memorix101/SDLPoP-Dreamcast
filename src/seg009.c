@@ -42,31 +42,20 @@ The authors of this program may be contacted at https://forum.princed.org
 #define X_OK 1 // Checks execution access
 
 int custom_access(const char *path, int mode) {
-    struct stat st;
-	printf("custom_access: %s %d\n",  path, mode);
-    if (stat(path, &st) != 0) {
-		printf("custom_access: %s", "File does not exist\n");
-        return -1; // File does not exist
+    file_t fd;
+    int ret = 0;
+
+    /* Check if the file exists and can be opened for reading */
+    fd = fs_open(path, O_RDONLY);
+    if (fd >= 0) {
+        /* File exists and can be read */
+        fs_close(fd);
+    } else {
+        /* File doesn't exist or can't be read */
+        ret = -1;
     }
 
-    // Check the mode
-    if (mode & F_OK) {
-		printf("custom_access: %s", "File exists, no further checks\n");
-        return 0; // File exists, no further checks
-    }
-    if (mode & R_OK && !(st.st_mode & S_IRUSR)) {
-		printf("custom_access: %s", "No read access\n");
-        return -1; // No read access
-    }
-    if (mode & W_OK && !(st.st_mode & S_IWUSR)) {
-		printf("custom_access: %s", "No write access\n");
-        return -1; // No write access
-    }
-    if (mode & X_OK && !(st.st_mode & S_IXUSR)) {
-		printf("custom_access: %s", "No execution access\n");
-        return -1; // No execution access
-    }
-	printf("custom_access: %s", "found\n");
+    return ret;
     return 0;
 }
 
@@ -152,8 +141,9 @@ const char* find_first_file_match(char* dst, int size, char* format, const char*
 #if defined WIN32 || _WIN32 || WIN64 || _WIN64 || DREAMCAST
 	//printf("beep d:%s f:%s\n", dst, filename);
 	snprintf_check(dst, size, format, "/cd", filename); // rd
-	printf("beep dst:%s f:%s file:%s\n", dst, format, filename);
+	// printf("beep dst:%s f:%s file:%s\n", dst, format, filename);
 #else
+
 	find_home_dir();
 	find_share_dir();
 	char* dirs[3] = {home_dir, share_dir, exe_dir};
@@ -163,7 +153,7 @@ const char* find_first_file_match(char* dst, int size, char* format, const char*
 			break;
 	}
 #endif
-	printf("beep dst:%s\n", dst);
+	// printf("beep dst:%s\n", dst);
 	return (const char*) dst;
 }
 
@@ -192,7 +182,7 @@ const char* locate_file_(const char* filename, char* path_buffer, int buffer_siz
 	} else {
 		// If failed, it may be that SDLPoP is being run from the wrong different working directory.
 		// We can try to rescue the situation by loading from the directory of the executable.
-		printf("locate_file_ p:%s f:%s\n", path_buffer, filename);
+		// printf("locate_file_ p:%s f:%s\n", path_buffer, filename);
 		return find_first_file_match(path_buffer, buffer_size, "%s/%s", filename);
 	}
 }
@@ -463,7 +453,7 @@ int pop_wait(int timer_index,int time) {
 }
 
 static FILE* open_dat_from_root_or_data_dir(const char* filename) {
-	printf("open_dat_from_root_or_data_dir");
+	// printf("open_dat_from_root_or_data_dir");
 	FILE* fp = NULL;
 	fp = fopen(filename, "rb");
 
@@ -473,7 +463,7 @@ static FILE* open_dat_from_root_or_data_dir(const char* filename) {
 		snprintf_check(data_path, sizeof(data_path), "data/%s", filename);
 
 		if (!file_exists(data_path)) {
-			printf("open_dat_from_root_or_data_dir: %s %s\n", data_path, filename);
+			// printf("open_dat_from_root_or_data_dir: %s %s\n", data_path, filename);
 			find_first_file_match(data_path, sizeof(data_path), "%s/data/%s", filename);
 		}
 
@@ -1047,7 +1037,7 @@ surface_type* make_offscreen_buffer(const rect_type* rect) {
 	// stub
 #ifndef USE_ALPHA
 	// Bit order matches onscreen buffer, good for fading.
-	return SDL_CreateRGBSurface(0, rect->right, rect->bottom, 24, Rmsk, Gmsk, Bmsk, 0);
+	return SDL_CreateRGBSurface(0, rect->right, rect->bottom, 32, Bmsk, Gmsk, Rmsk, 0);
 #else
 	return SDL_CreateRGBSurface(0, rect->right, rect->bottom, 32, Rmsk, Gmsk, Bmsk, Amsk);
 #endif
@@ -1980,7 +1970,6 @@ void stop_ogg(void) {
 	//SDL_UnlockAudio();
 	if(wav_is_playing(sfx_wav)){
 		wav_stop(sfx_wav);
-		//wav_destroy(sfx_wav);
 	}
 }
 
@@ -2494,7 +2483,7 @@ sound_buffer_type* load_sound(int index) {
                     break;
                 }
 				if(fp){
-					printf("File opened successfully: %s\n", filename);
+					;//printf("File opened successfully: %s\n", filename);
 				}
 
 			/*int error = 0;
@@ -2512,7 +2501,7 @@ sound_buffer_type* load_sound(int index) {
 
 				strncpy(result->filename, &filename, sizeof(result->filename) - 1);
 				result->filename[sizeof(result->filename) - 1] = '\0'; // Ensure null-termination
-				printf("Filename: %s\n", result->filename);
+				// printf("Filename: %s\n", result->filename);
 
                 result->type = sound_ogg;
                 //result->ogg.total_length = stb_vorbis_stream_length_in_samples(decoder) * sizeof(short);
@@ -2588,14 +2577,14 @@ void play_ogg_sound(sound_buffer_type *buffer) {
 
 	if (!wav_is_playing(sfx_wav)) {
    	 	ogg_playing = 0;
-    	printf("Sound not playing. Playback may have failed.\n");
+    	// printf("Sound not playing. Playback may have failed.\n");
 	} else {
-    	printf("Sound is playing as expected.\n");
+    	// printf("Sound is playing as expected.\n");
 		// Start the thread to monitor playback if not already running
-   		/*if (!ogg_thread_running) {
+   		if (!ogg_thread_running) {
         	ogg_thread_running = 1;
         	pthread_create(&ogg_thread, NULL, ogg_watch_thread, NULL);
-    	}*/
+    	}
 	}
 }
 
@@ -2920,7 +2909,7 @@ void lcd_test() {
 // seg009:38ED
 void set_gr_mode(byte grmode) {
 	SDL_SetHint(SDL_HINT_VIDEO_DOUBLE_BUFFER, "1");
-    //SDL_SetHint(SDL_HINT_DC_VIDEO_MODE, "SDL_DC_TEXTURED_VIDEO");
+    // SDL_SetHint(SDL_HINT_DC_VIDEO_MODE, "SDL_DC_TEXTURED_VIDEO");
     SDL_SetHint(SDL_HINT_DC_VIDEO_MODE, "SDL_DC_DMA_VIDEO");
 	//SDL_setenv("SDL_AUDIODRIVER", "dummy", 1);
 #ifdef SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING
@@ -2978,7 +2967,8 @@ void set_gr_mode(byte grmode) {
 		         // fallthrough!
 		default: break;
 	}
-	renderer_ = SDL_CreateRenderer(window_, -1 , flags | SDL_RENDERER_TARGETTEXTURE);
+	SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "software");  
+	renderer_ = SDL_CreateRenderer(window_, 1 , flags | SDL_RENDERER_TARGETTEXTURE);
 	SDL_RendererInfo renderer_info;
 	if (SDL_GetRendererInfo(renderer_, &renderer_info) == 0) {
 		if (renderer_info.flags & SDL_RENDERER_TARGETTEXTURE) {
@@ -3014,7 +3004,7 @@ void set_gr_mode(byte grmode) {
 	 * subsequently displayed.
 	 * The function handling the screen updates is update_screen()
 	 * */
-	onscreen_surface_ = SDL_CreateRGBSurface(0, 320, 200, 24, Rmsk, Gmsk, Bmsk, 0);
+	onscreen_surface_ = SDL_CreateRGBSurface(0, 320, 200, 32, Bmsk, Gmsk, Rmsk, 0);
 	if (onscreen_surface_ == NULL) {
 		sdlperror("set_gr_mode: SDL_CreateRGBSurface");
 		quit(1);
@@ -3563,7 +3553,7 @@ void blit_xor(SDL_Surface* target_surface, SDL_Rect* dest_rect, SDL_Surface* ima
 		printf("blit_xor: dest_rect and src_rect have different sizes\n");
 		quit(1);
 	}
-	SDL_Surface* helper_surface = SDL_CreateRGBSurface(0, dest_rect->w, dest_rect->h, 24, Rmsk, Gmsk, Bmsk, 0);
+	SDL_Surface* helper_surface = SDL_CreateRGBSurface(0, dest_rect->w, dest_rect->h, 32, Rmsk, Gmsk, Bmsk, 0);
 	if (helper_surface == NULL) {
 		sdlperror("blit_xor: SDL_CreateRGBSurface");
 		quit(1);

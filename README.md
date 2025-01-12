@@ -13,12 +13,7 @@ After that, compile using these commands in the terminal
 ```bash
 source /opt/toolchains/dc/kos/environ.sh
 
-git clone --depth 1 --branch master https://github.com/GPF/SDL2.git
-
-# currently stable version for this project
-git fetch --depth 1 origin a06f1187837f1289426fdf474e0b350f9004871e
-
-git checkout a06f1187837f1289426fdf474e0b350f9004871e
+git clone https://github.com/GPF/SDL2.git
 
 cd ~/SDL2/build-scripts
 

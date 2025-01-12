@@ -9,7 +9,7 @@ OBJS = stb_vorbis.o main.o data.o seg000.o seg001.o seg002.o seg003.o seg004.o s
 #OBJS = stb_vorbis_ac.o main_stb.o romdisk.o
 KOS_ROMDISK_DIR = romdisk
 
-KOS_CFLAGS += -I/opt/toolchains/dc/kos/include -I/opt/toolchains/dc/kos/addons/include -I$(KOS_BASE)/kernel/arch/dreamcast/include/dc -DDREAMCAST #-Werror 
+KOS_CFLAGS += -I/opt/toolchains/dc/kos/include -I/opt/toolchains/dc/kos/addons/include -I$(KOS_BASE)/kernel/arch/dreamcast/include/dc -DDREAMCAST -Wno-implicit-function-declaration -Wno-incompatible-pointer-types -Wno-int-conversion
 KOS_CPPFLAGS += -fexceptions -std=c++17 -fpermissive -O2
 
 # Update library paths and libraries for SDL2
@@ -26,7 +26,7 @@ rm-elf:
 	-rm -f $(TARGET) pop.elf sdl2_pop-dc.cdi romdisk.*
 
 $(TARGET): $(OBJS) $(HFILES)
-	kos-c++ -o $(TARGET) $(OBJS) $(OBJEXTRA) $(KOS_CFLAGS) -lwav -lSDL2_image -lSDL2 -lSDL2main -lGL -lkosutils $(KOS_LIBS) -fno-exceptions -fno-rtti
+	kos-c++ -o $(TARGET) $(OBJS) $(OBJEXTRA) $(KOS_CFLAGS) -lwav -lSDL2_image -lSDL2 -lSDL2main -lGL -lpng -ljpeg -lz -lkosutils $(KOS_LIBS) -fno-exceptions -fno-rtti
 	./make_cdi.sh
 
 run: $(TARGET) 
