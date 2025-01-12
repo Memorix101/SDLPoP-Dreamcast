@@ -24,11 +24,11 @@ cd ~/SDL2/build-scripts
 
 ./dreamcast.sh
 
-git clone --branch SDL2 https://github.com/libsdl-org/SDL_mixer.git
+git clone --branch SDL2 https://github.com/libsdl-org/SDL_image.git
 
-cd SDL_mixer
+cd SDL_image
 
-edit CMakeLists.txt and remove the SDL2MIXER_SAMPLES build part
+edit CMakeLists.txt and remove the SDLIMAGE_SAMPLES build part
 
 cd build-scripts
 
