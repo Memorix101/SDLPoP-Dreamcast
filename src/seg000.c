@@ -241,7 +241,8 @@ void start_game() {
 #ifdef USE_QUICKSAVE
 // All these functions return true on success, false otherwise.
 
-FILE* quick_fp;
+//FILE* quick_fp;
+file_t  quick_fp;
 
 int process_save(void* data, size_t data_size) {
 	return fwrite(data, data_size, 1, quick_fp) == 1;
@@ -378,7 +379,8 @@ int quick_save(void) {
 	int ok = 0;
 	char custom_quick_path[POP_MAX_PATH];
 	const char* path = get_quick_path(custom_quick_path, sizeof(custom_quick_path));
-	quick_fp = fopen(path, "wb");
+	printf("quick_save: %s\n", path);
+	quick_fp = fs_open(path, O_WRONLY); //fopen(path, "wb");
 	if (quick_fp != NULL) {
 		process_save((void*) quick_version, COUNT(quick_version));
 		ok = quick_process(process_save);
@@ -436,7 +438,8 @@ int quick_load(void) {
 	int ok = 0;
 	char custom_quick_path[POP_MAX_PATH];
 	const char* path = get_quick_path(custom_quick_path, sizeof(custom_quick_path));
-	quick_fp = fopen(path, "rb");
+	printf("quick_load: %s\n", path);
+	quick_fp = fs_open(path, O_RDONLY | O_DIR); // fopen(path, "rb");
 	if (quick_fp != NULL) {
 		// check quicksave version is compatible
 		process_load(quick_control, COUNT(quick_control));
@@ -2068,7 +2071,10 @@ void save_game() {
 	char custom_save_path[POP_MAX_PATH];
 	const char* save_path = get_save_path(custom_save_path, sizeof(custom_save_path));
 
-	FILE* handle = fopen(save_path, "wb");
+	//FILE* handle = fopen(save_path, "wb");
+	printf("save_game: %s\n", save_path);
+	fs_unlink(fs_unlink);
+	file_t handle = fs_open(save_path, O_WRONLY);
 	if (handle != NULL) {
 		if (fwrite(&rem_min, 1, 2, handle) != 2) goto error;
 		if (fwrite(&rem_tick, 1, 2, handle) != 2) goto error;
@@ -2103,7 +2109,10 @@ short load_game() {
 	char custom_save_path[POP_MAX_PATH];
 	const char* save_path = get_save_path(custom_save_path, sizeof(custom_save_path));
 
-	FILE* handle = fopen(save_path, "rb");
+	//FILE* handle = fopen(save_path, "rb");
+	printf("load_game: %s\n", save_path);
+	fs_unlink(fs_unlink);
+	file_t handle = fs_open(fs_unlink,  O_RDONLY | O_DIR);
 	if (handle != NULL) {
 		if (fread(&rem_min, 1, 2, handle) != 2) goto error;
 		if (fread(&rem_tick, 1, 2, handle) != 2) goto error;
@@ -2361,7 +2370,7 @@ void show_splash() {
 	//sndoggvorbis_start("/cd/data/music/potion.ogg", 0);
 	//adx_dec( "/cd/data/music/adx/potion.adx", 0);
 	sfxhnd_t beep1 = snd_sfx_load("/cd/data/music/wav_output/potion.wav");
-	snd_sfx_play(beep1, 255, 255);
+	snd_sfx_play(beep1, 255, 128);
 
 	current_target_surface = onscreen_surface_;
 	draw_rect(&screen_rect, color_0_black);
@@ -2411,13 +2420,14 @@ const char* get_writable_file_path(char* custom_path_buffer, size_t max_len, con
 #else
 	char save_path[POP_MAX_PATH];
 	const char* custom_save_path = getenv("SDLPOP_SAVE_PATH");
-	const char* home_path = getenv("HOME");
+	const char* home_path = "/vmu";//getenv("HOME");
 	if (custom_save_path != NULL && custom_save_path[0] != '\0')
 		snprintf_check(save_path, max_len, "%s", custom_save_path);
 	else if (home_path != NULL && home_path[0] != '\0')
-		snprintf_check(save_path, max_len, "%s/.%s", home_path, POP_DIR_NAME);
+		snprintf_check(save_path, max_len, "%s/%s", home_path, "sdl_pop");
 #endif
-
+	
+	printf("save_path: %s\n", save_path);
 	if (save_path != NULL && save_path[0] != '\0') {
 #if defined WIN32 || _WIN32 || WIN64 || _WIN64
 		mkdir (save_path);

@@ -42,6 +42,8 @@ typedef file_t DC_FILE;
 #endif
 
 //setup vmu display image
+#include <kos.h>
+#include <kos/string.h>
 #include <dc/maple.h>
 #include <dc/maple/controller.h>
 #include <dc/maple/vmu.h>
