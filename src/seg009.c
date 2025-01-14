@@ -45,6 +45,8 @@ int custom_access(const char *path, int mode) {
     file_t fd;
     int ret = 0;
 
+	printf("custom_access: %s\n", path);
+
     /* Check if the file exists and can be opened for reading */
     fd = fs_open(path, O_RDONLY);
     if (fd >= 0) {
@@ -56,7 +58,6 @@ int custom_access(const char *path, int mode) {
     }
 
     return ret;
-    return 0;
 }
 
 /*int access(const char *path, int mode) {
@@ -76,7 +77,7 @@ void sdlperror(const char* header) {
 	//quit(1);
 }
 
-char exe_dir[POP_MAX_PATH] = ""; // rd
+char exe_dir[POP_MAX_PATH] = "/cd/"; // rd
 bool found_exe_dir = true; // rd
 #if ! (defined WIN32 || _WIN32 || WIN64 || _WIN64 || DREAMCAST)
 char home_dir[POP_MAX_PATH];
@@ -176,13 +177,42 @@ const char* locate_save_file_(const char* filename, char* dst, int size) {
 #endif
 	return (const char*) dst;
 }
+
 const char* locate_file_(const char* filename, char* path_buffer, int buffer_size) {
+
+    /*const char *prefix = "/rd/";
+    const char *mods = "/rd/mods";
+    const char *replays = "/rd/replays";
+    const char *cfg = "SDLPoP.cfg";
+    const char *ini = "SDLPoP.ini";
+
+	printf("> locate_file_: %s|\n", filename);
+
+    // Check if the string starts with the prefix
+	if (strncmp(filename, ini, strlen(filename)) == 0) {
+        return "/rd/SDLPoP.ini";
+    } else if (strncmp(filename, cfg, strlen(filename)) == 0) {
+        return "/rd/SDLPoP.ini";
+    } else if (strncmp(filename, replays, strlen(filename)) == 0) {
+        return filename;
+    } else if (strncmp(filename, mods, strlen(filename)) == 0) {
+        return filename;
+    } else if (strncmp(filename, prefix, strlen(prefix)) == 0) {
+        printf("The string starts with '%s'\n", prefix);
+    } else {
+        //printf("The string does not start with '%s'.\n", prefix);
+		char s1[] = "/cd/"; 
+    	strcat(s1, filename);
+		filename = s1;
+    }*/
+
 	if(file_exists(filename)) {
 		return filename;
 	} else {
 		// If failed, it may be that SDLPoP is being run from the wrong different working directory.
 		// We can try to rescue the situation by loading from the directory of the executable.
-		// printf("locate_file_ p:%s f:%s\n", path_buffer, filename);
+		printf(">> locate_file_ p: %p f: %s\n", path_buffer, filename);
+		//quit(2); // force direct path
 		return find_first_file_match(path_buffer, buffer_size, "%s/%s", filename);
 	}
 }
