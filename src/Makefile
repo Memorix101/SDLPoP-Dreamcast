@@ -9,7 +9,7 @@ OBJS = stb_vorbis.o main.o data.o seg000.o seg001.o seg002.o seg003.o seg004.o s
 #OBJS = stb_vorbis_ac.o main_stb.o romdisk.o
 KOS_ROMDISK_DIR = romdisk
 
-KOS_CFLAGS += -I/opt/toolchains/dc/kos/include -I/opt/toolchains/dc/kos/addons/include -I$(KOS_BASE)/kernel/arch/dreamcast/include/dc -DDREAMCAST -Wno-implicit-function-declaration -Wno-incompatible-pointer-types -Wno-int-conversion
+KOS_CFLAGS += -I/opt/toolchains/dc/kos/include -I/opt/toolchains/dc/kos/addons/include -I$(KOS_BASE)/kernel/arch/dreamcast/include/dc -DDISABLE_SNPRINTF_CHECKS -DDREAMCAST -fno-exceptions -O2
 KOS_CPPFLAGS += -fexceptions -std=c++17 -fpermissive -O2
 
 # Update library paths and libraries for SDL2

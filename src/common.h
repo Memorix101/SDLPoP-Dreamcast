@@ -107,7 +107,7 @@ extern "C" {
 
 /*#ifdef DISABLE_SNPRINTF_CHECKS
 #define snprintf_check(dst, size, ...) snprintf(dst, size, __VA_ARGS__)
-#else
+#else*/
 #define snprintf_check(dst, size, ...)	do {			\
 		int __len;					\
 		__len = snprintf(dst, size, __VA_ARGS__);	\
@@ -116,21 +116,7 @@ extern "C" {
 			quit(2);				\
 		}						\
 	} while (0)
-#endif
-
-
-#ifdef __cplusplus
-}
-#endif*/
-
-#define snprintf_check(dst, size, ...)	do {			\
-		int __len;					\
-		__len = snprintf(dst, size, __VA_ARGS__);	\
-		if (__len < 0 || __len >= (int)size) {		\
-			fprintf(stderr, "%s: buffer truncation detected!\n", __func__);\
-			quit(2);				\
-		}						\
-	} while (0)
+//#endif
 
 #ifdef __cplusplus
 }
