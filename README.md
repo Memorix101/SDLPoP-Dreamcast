@@ -1,6 +1,6 @@
 # SDLPoP-Dreamcast
 
-An open-source port of Prince of Persia, based on the disassembly of the DOS version, extended with new features.
+An open-source port of Prince of Persia, based on the disassembly of the DOS version, extended with new features for SEGA Dreamcast
 
 ![image](https://github.com/user-attachments/assets/efb808b2-95d0-41cc-b56c-cd682c136105)
 
