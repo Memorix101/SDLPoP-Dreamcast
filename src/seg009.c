@@ -45,7 +45,7 @@ int custom_access(const char *path, int mode) {
     file_t fd;
     int ret = 0;
 
-	printf("custom_access: %s\n", path);
+	//printf("custom_access: %s\n", path);
 
     /* Check if the file exists and can be opened for reading */
     fd = fs_open(path, O_RDONLY);
@@ -77,7 +77,7 @@ void sdlperror(const char* header) {
 	//quit(1);
 }
 
-char exe_dir[POP_MAX_PATH] = "/cd/"; // rd
+char exe_dir[POP_MAX_PATH] = "/rd/"; // rd
 bool found_exe_dir = true; // rd
 #if ! (defined WIN32 || _WIN32 || WIN64 || _WIN64 || DREAMCAST)
 char home_dir[POP_MAX_PATH];
@@ -141,7 +141,7 @@ const char* find_first_file_match(char* dst, int size, char* format, const char*
 	//find_exe_dir();
 #if defined WIN32 || _WIN32 || WIN64 || _WIN64 || DREAMCAST
 	//printf("beep d:%s f:%s\n", dst, filename);
-	snprintf_check(dst, size, format, "/cd", filename); // rd
+	snprintf_check(dst, size, format, "/rd", filename); // rd
 	// printf("beep dst:%s f:%s file:%s\n", dst, format, filename);
 #else
 
@@ -211,7 +211,7 @@ const char* locate_file_(const char* filename, char* path_buffer, int buffer_siz
 	} else {
 		// If failed, it may be that SDLPoP is being run from the wrong different working directory.
 		// We can try to rescue the situation by loading from the directory of the executable.
-		printf(">> locate_file_ p: %p f: %s\n", path_buffer, filename);
+		//printf(">> locate_file_ p: %p f: %s\n", path_buffer, filename);
 		//quit(2); // force direct path
 		return find_first_file_match(path_buffer, buffer_size, "%s/%s", filename);
 	}
@@ -2513,7 +2513,7 @@ sound_buffer_type* load_sound(int index) {
                     break;
                 }
 				if(fp){
-					;//printf("File opened successfully: %s\n", filename);
+					//printf("File opened successfully: %s\n", filename);
 				}
 
 			/*int error = 0;
@@ -2545,9 +2545,9 @@ sound_buffer_type* load_sound(int index) {
         result = (sound_buffer_type*) load_from_opendats_alloc(index + 10000, "bin", NULL, NULL);
     }
     if (result != NULL && (result->type & 7) == sound_digi) {
-        sound_buffer_type* converted = convert_digi_sound(result);
-        free(result);
-        result = converted;
+        //sound_buffer_type* converted = convert_digi_sound(result);
+        //free(result);
+        //result = converted;
     }
     if (result == NULL && !skip_normal_data_files) {
         fprintf(stderr, "Failed to load sound %d '%s'\n", index, sound_name(index));
@@ -2584,7 +2584,6 @@ void play_ogg_sound(sound_buffer_type *buffer) {
 	init_digi();
 	if (digi_unavailable) return;
 	stop_sounds();
-
 	// Need to rewind the music, or else the decoder might continue where it left off, the last time this sound played.
 	/*stb_vorbis_seek_start(buffer->ogg.decoder);
 
@@ -2657,10 +2656,15 @@ bool determine_wave_version(sound_buffer_type *buffer, waveinfo_type* waveinfo) 
 	}
 }
 
-sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer) {
+/*sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer) {
 	init_digi();
 	if (digi_unavailable) return NULL;
 	waveinfo_type waveinfo;
+
+	//printf("digi_buffer %f\n", digi_buffer->digi.sample_size);
+	//printf("waveinfo %f\n", waveinfo.sample_size);
+	//printf("freq_ratio %f\n", freq_ratio);
+
 	if (false == determine_wave_version(digi_buffer, &waveinfo)) return NULL;
 
 	float freq_ratio = (float)waveinfo.sample_rate /  (float)digi_audiospec->freq;
@@ -2674,7 +2678,12 @@ sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer) {
 	converted_buffer->converted.length = expanded_length;
 
 	byte* source = waveinfo.samples;
-	short* dest = converted_buffer->converted.samples;
+	short* dest = malloc(sizeof(short) * converted_buffer->converted.length); // Allocate memory for all samples
+	if (!dest) {
+    	printf("Failed to allocate memory for samples.\n");
+    	return NULL;
+	}
+	converted_buffer->converted.samples = dest;
 
 	for (int i = 0; i < expanded_frames; ++i) {
 		float src_frame_float = i * freq_ratio;
@@ -2696,6 +2705,71 @@ sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer) {
 	}
 
 	return converted_buffer;
+}*/
+
+sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer) {
+    init_digi();
+    if (digi_unavailable) return NULL;
+
+    waveinfo_type waveinfo;
+
+    // Determine the wave version and initialize waveinfo
+    if (!determine_wave_version(digi_buffer, &waveinfo)) {
+        return NULL;
+    }
+
+    float freq_ratio = (float)waveinfo.sample_rate / (float)digi_audiospec->freq;
+
+    int source_length = waveinfo.sample_count;
+    int expanded_frames = source_length * digi_audiospec->freq / waveinfo.sample_rate;
+    int expanded_length = expanded_frames * digi_audiospec->channels * sizeof(short);
+
+    // Allocate memory for the converted buffer
+    sound_buffer_type* converted_buffer = malloc(sizeof(sound_buffer_type) + expanded_length);
+    if (!converted_buffer) {
+        printf("Failed to allocate memory for converted_buffer.\n");
+        return NULL;
+    }
+
+    // Initialize converted_buffer
+    converted_buffer->type = sound_digi_converted;
+    converted_buffer->converted.length = expanded_length;
+
+    // Allocate memory for the sample data
+    short* samples = malloc(expanded_length);
+    if (!samples) {
+        printf("Failed to allocate memory for samples.\n");
+        free(converted_buffer); // Free previously allocated memory
+        return NULL;
+    }
+    converted_buffer->converted.samples = samples;
+
+    byte* source = waveinfo.samples;
+    short* write_ptr = samples; // Use a separate pointer for writing
+
+    // Fill the samples buffer with interpolated data
+    for (int i = 0; i < expanded_frames; ++i) {
+        float src_frame_float = i * freq_ratio;
+        int src_frame_0 = (int)src_frame_float; // truncation
+
+        int sample_0 = (source[src_frame_0] | (source[src_frame_0] << 8)) - 32768;
+        short interpolated_sample;
+
+        if (src_frame_0 >= waveinfo.sample_count - 1) {
+            interpolated_sample = (short)sample_0;
+        } else {
+            int src_frame_1 = src_frame_0 + 1;
+            float alpha = src_frame_float - src_frame_0;
+            int sample_1 = (source[src_frame_1] | (source[src_frame_1] << 8)) - 32768;
+            interpolated_sample = (short)((1.0f - alpha) * sample_0 + alpha * sample_1);
+        }
+
+        for (int channel = 0; channel < digi_audiospec->channels; ++channel) {
+            *write_ptr++ = interpolated_sample;
+        }
+    }
+	free(samples);
+    return converted_buffer;
 }
 
 // seg009:74F0
@@ -2706,32 +2780,46 @@ void play_digi_sound(sound_buffer_type* buffer) {
 	stop_digi();
 //	stop_sounds();
 	//printf("play_digi_sound(): called\n");
+
 	if ((buffer->type & 7) != sound_digi_converted) {
 		printf("Tried to play unconverted digi sound.\n");
 		return;
 	}
-	SDL_LockAudio();
-	digi_buffer = (byte*) buffer->converted.samples;
-	digi_playing = 1;
-	digi_remaining_length = buffer->converted.length;
-	digi_remaining_pos = digi_buffer;
-	SDL_UnlockAudio();
-	SDL_PauseAudio(0);
+
+	if(buffer->type == sound_digi_converted){
+		SDL_LockAudio();
+		digi_buffer = (byte*) buffer->converted.samples;
+		digi_playing = 1;
+		digi_remaining_length = buffer->converted.length;
+		digi_remaining_pos = digi_buffer;
+		SDL_UnlockAudio();
+		SDL_PauseAudio(0);
+	}
 }
 
-void free_sound(sound_buffer_type* buffer) {
+/*void free_sound(sound_buffer_type* buffer) {
 	if (buffer == NULL) return;
 	if (buffer->type == sound_ogg) {
 		stb_vorbis_close(buffer->ogg.decoder);
 		free(buffer->ogg.file_contents);
 	}
 	free(buffer);
+}*/
+
+// Ensure proper cleanup of allocated memory
+void free_sound(sound_buffer_type* buffer) {
+    if (buffer) {
+        if (buffer->converted.samples) {
+            free(buffer->converted.samples);
+            buffer->converted.samples = NULL;
+        }
+        free(buffer);
+    }
 }
 
 
 // seg009:7220
 void play_sound_from_buffer(sound_buffer_type* buffer) {
-
 
 #ifdef USE_REPLAY
 	if (replaying && skipping_replay) return;
@@ -2745,14 +2833,16 @@ void play_sound_from_buffer(sound_buffer_type* buffer) {
 	}
 	switch (buffer->type & 7) {
 		case sound_speaker:
-			play_speaker_sound(buffer);
+			//play_speaker_sound(buffer);
 		break;
 		case sound_digi_converted:
 		case sound_digi:
+			// convert digi	
+			buffer = convert_digi_sound(buffer);
 			play_digi_sound(buffer);
 		break;
 		case sound_midi:
-			play_midi_sound(buffer);
+			//play_midi_sound(buffer);
 			//printf("Playing ... %s\n", buffer->filename);
 		break;
 		case sound_ogg:
@@ -2761,9 +2851,10 @@ void play_sound_from_buffer(sound_buffer_type* buffer) {
 		break;
 		default:
 			printf("Tried to play unimplemented sound type %d.\n", buffer->type);
-			quit(1);
+			//quit(1);
 		break;
 	}
+	free(buffer);
 }
 
 void turn_music_on_off(byte new_state) {
@@ -2939,6 +3030,7 @@ void lcd_test() {
 
 // seg009:38ED
 void set_gr_mode(byte grmode) {
+
 	SDL_SetHint(SDL_HINT_VIDEO_DOUBLE_BUFFER, "1");
     // SDL_SetHint(SDL_HINT_DC_VIDEO_MODE, "SDL_DC_TEXTURED_VIDEO");
     SDL_SetHint(SDL_HINT_DC_VIDEO_MODE, "SDL_DC_DMA_VIDEO");
@@ -3825,7 +3917,7 @@ cont_state_t *state;
 int START_BUTTON_DOWN = 0; // bool
 int START_BUTTON = 0; // button state bool
 
-	#include <stdio.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <kos/init.h>
 #include <arch/arch.h>

@@ -29,6 +29,7 @@ static const char stack[] = "$STACK:200000";
 
 int main(int argc, char *argv[])
 {
+	//dbgio_dev_select("fb");
 	g_argc = argc;
 	g_argv = argv;
 	pop_main();

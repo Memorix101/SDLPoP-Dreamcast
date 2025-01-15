@@ -50,6 +50,7 @@ typedef file_t DC_FILE;
 #include <adx/adx.h> /* ADX Decoder Library */
 #include <adx/snddrv.h> /* Direct Access to Sound Driver */
 #include <oggvorbis/sndoggvorbis.h>
+#include <dc/fb_console.h>
 #include <dc/sound/sound.h>
 #include <dc/sound/sfxmgr.h>
 #include <wav/sndwav.h>

@@ -143,7 +143,7 @@ static int ini_process_##data_type(const char* curr_name, const char* value, con
 	} \
 	return 0; /* not the right option; should check another option_name */ \
 }
-ini_process_numeric_func(word)
+//ini_process_numeric_func(word)
 ini_process_numeric_func(short)
 ini_process_numeric_func(byte)
 ini_process_numeric_func(sbyte)
@@ -156,7 +156,7 @@ static int global_ini_callback(const char *section, const char *name, const char
 	#define check_ini_section(section_name)    (strcasecmp(section, section_name) == 0)
 
 	// Make sure that we return successfully as soon as name matches the correct option_name
-	#define process_word(option_name, target, value_names)                           \
+	//#define process_word(option_name, target, value_names)                           \
 	if (ini_process_word(name, value, option_name, target, value_names)) return 1;
 
 	#define process_short(option_name, target, value_names)                           \
@@ -191,8 +191,8 @@ static int global_ini_callback(const char *section, const char *name, const char
 		process_boolean("enable_text", &enable_text);
 		process_boolean("enable_info_screen", &enable_info_screen);
 		process_boolean("start_fullscreen", &start_fullscreen);
-		process_word("pop_window_width", &pop_window_width, NULL);
-		process_word("pop_window_height", &pop_window_height, NULL);
+		//process_word("pop_window_width", &pop_window_width, NULL);
+		//process_word("pop_window_height", &pop_window_height, NULL);
 		process_byte("use_hardware_acceleration", &use_hardware_acceleration, &use_hardware_acceleration_names_list);
 		process_boolean("use_correct_aspect_ratio", &use_correct_aspect_ratio);
 		process_boolean("use_integer_scaling", &use_integer_scaling);
@@ -297,15 +297,15 @@ static int global_ini_callback(const char *section, const char *name, const char
 
 	if (check_ini_section("CustomGameplay")) {
 		process_boolean("use_custom_options", &use_custom_options);
-		process_word("start_minutes_left", &custom_saved.start_minutes_left, NULL);
-		process_word("start_ticks_left", &custom_saved.start_ticks_left, NULL);
-		process_word("start_hitp", &custom_saved.start_hitp, NULL);
-		process_word("max_hitp_allowed", &custom_saved.max_hitp_allowed, NULL);
-		process_word("saving_allowed_first_level", &custom_saved.saving_allowed_first_level, &never_is_16_list);
-		process_word("saving_allowed_last_level", &custom_saved.saving_allowed_last_level, &never_is_16_list);
+		//process_word("start_minutes_left", &custom_saved.start_minutes_left, NULL);
+		//process_word("start_ticks_left", &custom_saved.start_ticks_left, NULL);
+		//process_word("start_hitp", &custom_saved.start_hitp, NULL);
+		//process_word("max_hitp_allowed", &custom_saved.max_hitp_allowed, NULL);
+		//process_word("saving_allowed_first_level", &custom_saved.saving_allowed_first_level, &never_is_16_list);
+		//process_word("saving_allowed_last_level", &custom_saved.saving_allowed_last_level, &never_is_16_list);
 		process_boolean("start_upside_down", &custom_saved.start_upside_down);
 		process_boolean("start_in_blind_mode", &custom_saved.start_in_blind_mode);
-		process_word("copyprot_level", &custom_saved.copyprot_level, &never_is_16_list);
+		//process_word("copyprot_level", &custom_saved.copyprot_level, &never_is_16_list);
 		process_byte("drawn_tile_top_level_edge", &custom_saved.drawn_tile_top_level_edge, &tile_type_names_list);
 		process_byte("drawn_tile_left_level_edge", &custom_saved.drawn_tile_left_level_edge, &tile_type_names_list);
 		process_byte("level_edge_hit_tile", &custom_saved.level_edge_hit_tile, &tile_type_names_list);
@@ -340,23 +340,23 @@ static int global_ini_callback(const char *section, const char *name, const char
 			palette_color->b = rgb[2] / 4;
 			return 1;
 		}
-		process_word("first_level", &custom_saved.first_level, NULL);
+		//process_word("first_level", &custom_saved.first_level, NULL);
 		process_boolean("skip_title", &custom_saved.skip_title);
-		process_word("shift_L_allowed_until_level", &custom_saved.shift_L_allowed_until_level, &never_is_16_list);
-		process_word("shift_L_reduced_minutes", &custom_saved.shift_L_reduced_minutes, NULL);
-		process_word("shift_L_reduced_ticks", &custom_saved.shift_L_reduced_ticks, NULL);
-		process_word("demo_hitp", &custom_saved.demo_hitp, NULL);
-		process_word("demo_end_room", &custom_saved.demo_end_room, NULL);
-		process_word("intro_music_level", &custom_saved.intro_music_level, &never_is_16_list);
-		process_word("have_sword_from_level", &custom_saved.have_sword_from_level, &never_is_16_list);
-		process_word("checkpoint_level", &custom_saved.checkpoint_level, &never_is_16_list);
+		//process_word("shift_L_allowed_until_level", &custom_saved.shift_L_allowed_until_level, &never_is_16_list);
+		//process_word("shift_L_reduced_minutes", &custom_saved.shift_L_reduced_minutes, NULL);
+		//process_word("shift_L_reduced_ticks", &custom_saved.shift_L_reduced_ticks, NULL);
+		//process_word("demo_hitp", &custom_saved.demo_hitp, NULL);
+		//process_word("demo_end_room", &custom_saved.demo_end_room, NULL);
+		//process_word("intro_music_level", &custom_saved.intro_music_level, &never_is_16_list);
+		//process_word("have_sword_from_level", &custom_saved.have_sword_from_level, &never_is_16_list);
+		//process_word("checkpoint_level", &custom_saved.checkpoint_level, &never_is_16_list);
 		process_sbyte("checkpoint_respawn_dir", &custom_saved.checkpoint_respawn_dir, &direction_names_list);
 		process_byte("checkpoint_respawn_room", &custom_saved.checkpoint_respawn_room, NULL);
 		process_byte("checkpoint_respawn_tilepos", &custom_saved.checkpoint_respawn_tilepos, NULL);
 		process_byte("checkpoint_clear_tile_room", &custom_saved.checkpoint_clear_tile_room, NULL);
 		process_byte("checkpoint_clear_tile_col", &custom_saved.checkpoint_clear_tile_col, NULL);
 		process_byte("checkpoint_clear_tile_row", &custom_saved.checkpoint_clear_tile_row, &row_names_list);
-		process_word("skeleton_level", &custom_saved.skeleton_level, &never_is_16_list);
+		//process_word("skeleton_level", &custom_saved.skeleton_level, &never_is_16_list);
 		process_byte("skeleton_room", &custom_saved.skeleton_room, NULL);
 		process_byte("skeleton_trigger_column_1", &custom_saved.skeleton_trigger_column_1, NULL);
 		process_byte("skeleton_trigger_column_2", &custom_saved.skeleton_trigger_column_2, NULL);
@@ -368,7 +368,7 @@ static int global_ini_callback(const char *section, const char *name, const char
 		process_byte("skeleton_reappear_x", &custom_saved.skeleton_reappear_x, NULL);
 		process_byte("skeleton_reappear_row", &custom_saved.skeleton_reappear_row, &row_names_list);
 		process_byte("skeleton_reappear_dir", &custom_saved.skeleton_reappear_dir, &direction_names_list);
-		process_word("mirror_level", &custom_saved.mirror_level, &never_is_16_list);
+		//process_word("mirror_level", &custom_saved.mirror_level, &never_is_16_list);
 		process_byte("mirror_room", &custom_saved.mirror_room, NULL);
 		process_byte("mirror_column", &custom_saved.mirror_column, NULL);
 		process_byte("mirror_row", &custom_saved.mirror_row, &row_names_list);
@@ -380,26 +380,26 @@ static int global_ini_callback(const char *section, const char *name, const char
 		process_byte("shadow_step_level", &custom_saved.shadow_step_level, &never_is_16_list);
 		process_byte("shadow_step_room", &custom_saved.shadow_step_room, NULL);
 
-		process_word("falling_exit_level", &custom_saved.falling_exit_level, &never_is_16_list);
+		//process_word("falling_exit_level", &custom_saved.falling_exit_level, &never_is_16_list);
 		process_byte("falling_exit_room", &custom_saved.falling_exit_room, NULL);
-		process_word("falling_entry_level", &custom_saved.falling_entry_level, &never_is_16_list);
+		//process_word("falling_entry_level", &custom_saved.falling_entry_level, &never_is_16_list);
 		process_byte("falling_entry_room", &custom_saved.falling_entry_room, NULL);
-		process_word("mouse_level", &custom_saved.mouse_level, &never_is_16_list);
+		//process_word("mouse_level", &custom_saved.mouse_level, &never_is_16_list);
 		process_byte("mouse_room", &custom_saved.mouse_room, NULL);
-		process_word("mouse_delay", &custom_saved.mouse_delay, NULL);
+		//process_word("mouse_delay", &custom_saved.mouse_delay, NULL);
 		process_byte("mouse_object", &custom_saved.mouse_object, NULL);
 		process_byte("mouse_start_x", &custom_saved.mouse_start_x, NULL);
-		process_word("loose_tiles_level", &custom_saved.loose_tiles_level, &never_is_16_list);
+		//process_word("loose_tiles_level", &custom_saved.loose_tiles_level, &never_is_16_list);
 		process_byte("loose_tiles_room_1", &custom_saved.loose_tiles_room_1, NULL);
 		process_byte("loose_tiles_room_2", &custom_saved.loose_tiles_room_2, NULL);
 		process_byte("loose_tiles_first_tile", &custom_saved.loose_tiles_first_tile, NULL);
 		process_byte("loose_tiles_last_tile", &custom_saved.loose_tiles_last_tile, NULL);
-		process_word("jaffar_victory_level", &custom_saved.jaffar_victory_level, &never_is_16_list);
+		//process_word("jaffar_victory_level", &custom_saved.jaffar_victory_level, &never_is_16_list);
 		process_byte("jaffar_victory_flash_time", &custom_saved.jaffar_victory_flash_time, NULL);
-		process_word("hide_level_number_from_level", &custom_saved.hide_level_number_from_level, &never_is_16_list);
+		//process_word("hide_level_number_from_level", &custom_saved.hide_level_number_from_level, &never_is_16_list);
 		process_byte("level_13_level_number", &custom_saved.level_13_level_number, NULL);
-		process_word("victory_stops_time_level", &custom_saved.victory_stops_time_level, &never_is_16_list);
-		process_word("win_level", &custom_saved.win_level, &never_is_16_list);
+		//process_word("victory_stops_time_level", &custom_saved.victory_stops_time_level, &never_is_16_list);
+		//process_word("win_level", &custom_saved.win_level, &never_is_16_list);
 		process_byte("win_room", &custom_saved.win_room, NULL);
 		process_byte("loose_floor_delay", &custom_saved.loose_floor_delay, NULL);
 		process_byte("base_speed", &custom_saved.base_speed, NULL);
@@ -414,7 +414,7 @@ static int global_ini_callback(const char *section, const char *name, const char
 		if (ini_level >= 0 && ini_level <= 15) {
 			// TODO: And maybe allow new types in addition to the existing ones.
 			process_byte("level_type", &custom_saved.tbl_level_type[ini_level], &level_type_names_list);
-			process_word("level_color", &custom_saved.tbl_level_color[ini_level], NULL);
+			//process_word("level_color", &custom_saved.tbl_level_color[ini_level], NULL);
 			process_short("guard_type", &custom_saved.tbl_guard_type[ini_level], &guard_type_names_list);
 			process_byte("guard_hp", &custom_saved.tbl_guard_hp[ini_level], NULL);
 
@@ -437,13 +437,13 @@ static int global_ini_callback(const char *section, const char *name, const char
 	int ini_skill = -1;
 	if (strncasecmp(section, "Skill ", 6) == 0 && sscanf(section+6, "%d", &ini_skill) == 1) {
 		if (ini_skill >= 0 && ini_skill < NUM_GUARD_SKILLS) {
-			process_word("strikeprob",    &custom_saved.strikeprob   [ini_skill], NULL);
-			process_word("restrikeprob",  &custom_saved.restrikeprob [ini_skill], NULL);
-			process_word("blockprob",     &custom_saved.blockprob    [ini_skill], NULL);
-			process_word("impblockprob",  &custom_saved.impblockprob [ini_skill], NULL);
-			process_word("advprob",       &custom_saved.advprob      [ini_skill], NULL);
-			process_word("refractimer",   &custom_saved.refractimer  [ini_skill], NULL);
-			process_word("extrastrength", &custom_saved.extrastrength[ini_skill], NULL);
+			//process_word("strikeprob",    &custom_saved.strikeprob   [ini_skill], NULL);
+			//process_word("restrikeprob",  &custom_saved.restrikeprob [ini_skill], NULL);
+			//process_word("blockprob",     &custom_saved.blockprob    [ini_skill], NULL);
+			//process_word("impblockprob",  &custom_saved.impblockprob [ini_skill], NULL);
+			//process_word("advprob",       &custom_saved.advprob      [ini_skill], NULL);
+			//process_word("refractimer",   &custom_saved.refractimer  [ini_skill], NULL);
+			//process_word("extrastrength", &custom_saved.extrastrength[ini_skill], NULL);
 		} else {
 			printf("Warning: Invalid section [Skill %d] in the INI!\n", ini_skill);
 		}

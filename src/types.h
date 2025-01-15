@@ -582,22 +582,23 @@ typedef struct ogg_type {
 
 typedef struct converted_audio_type {
 	int length;
-	short samples[];
+	//short samples[];
+	short * samples;
 } converted_audio_type;
 
 typedef struct sound_buffer_type {
-	byte type;
-	union {
-		speaker_type speaker;
-		digi_type digi;
-		digi_new_type digi_new;
-		midi_type midi;
-		ogg_type ogg;
-		converted_audio_type converted;
-		char filename[256];
-	};
+    byte type; 
+	//byte _pad[3];      // offsets 1-3 for padding
+    union {
+        speaker_type speaker;
+        digi_type    digi;
+        digi_new_type digi_new;
+        midi_type    midi;
+        ogg_type     ogg;
+        converted_audio_type converted; 
+        char filename[256];
+    } __attribute__((aligned(4)));
 } sound_buffer_type;
-
 
 typedef struct midi_raw_chunk_type {
 	char chunk_type[4];
@@ -1198,7 +1199,9 @@ names_list_type listname##_list = {.type=0, .names = {&listname, COUNT(listname)
 #define KEY_VALUE_LIST(listname, ...) const key_value_type listname[] = __VA_ARGS__; \
 names_list_type listname##_list = {.type=1, .kv_pairs= {(key_value_type*)&listname, COUNT(listname)}}
 
+#ifndef DREAMCAST
 #pragma pack(push,1)
+#endif
 typedef struct fixes_options_type {
 	byte enable_crouch_after_climbing;
 	byte enable_freeze_time_during_end_music;
@@ -1359,7 +1362,9 @@ typedef struct custom_options_type {
 
 	byte no_mouse_in_ending;
 } custom_options_type;
+#ifndef DREAMCAST
 #pragma pack(pop)
+#endif
 
 typedef struct directory_listing_type directory_listing_type;
 
