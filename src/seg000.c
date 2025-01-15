@@ -382,6 +382,11 @@ const char* quick_file = "SDLPOP.SAV";
 const char quick_version[] = "V1.16b4 ";
 char quick_control[] = "........";
 
+/* An icon is always 32x32 4bpp */
+#define ICON_SIZE (32 * 32 / 2)
+#define NB_ICONS_MAX 3
+static unsigned char vmu_icon[ICON_SIZE * NB_ICONS_MAX];
+
 const char* get_quick_path(char* custom_path_buffer, size_t max_len) {
 	return get_writable_file_path(custom_path_buffer, max_len, quick_file /*QUICKSAVE.SAV*/ );
 }
@@ -398,6 +403,58 @@ int quick_save(void) {
 		printf("quick_process: %d\n", ok);
 		fs_close(quick_fp);
 		quick_fp = NULL;
+
+// vmu		
+   file_t file;
+   int filesize = 0;
+   unsigned long zipsize = 0;
+   uint8 *data;
+   uint8 *zipdata;
+   vmu_pkg_t pkg;
+   uint8 *pkg_out;
+   int pkg_size;
+
+   // Reads in the file from the CWD
+   file = fs_open("/vmu/a1/SDLPOP.SAV", O_RDONLY);
+   filesize = fs_total(file);
+   data = (uint8*)malloc(filesize);
+   fs_read(file, data, filesize);
+   fs_close(file);
+
+   // Allocate some memory for compression
+   zipsize = filesize * 2;
+   zipdata = (uint8*)malloc(zipsize);
+
+   // The compressed save
+   compress(zipdata, &zipsize, data, filesize);
+
+   // Required VMU header
+   // You will have to have a VMU icon defined under icon_data
+   strcpy(pkg.desc_short, "SDLPoP");
+   strcpy(pkg.desc_long, "Prince of Persia (SDLPoP) savefile");
+   strcpy(pkg.app_id, "SDLPoP");
+   pkg.icon_cnt = NB_ICONS_MAX;
+   pkg.icon_data = vmu_icon;
+   pkg.icon_anim_speed = 8;
+   pkg.eyecatch_type = VMUPKG_EC_NONE;
+   pkg.data_len = zipsize;
+   pkg.data = zipdata;
+   
+   //vmu_pkg_load_icon(&pkg, "/rd/savegame.ico");
+   vmu_pkg_build(&pkg, &pkg_out, &pkg_size);
+
+   // Save the newly created VMU save to the VMU
+   fs_unlink("/vmu/a1/SDLPOP.SAV"); // delete unecrypted file
+   file = fs_open("/vmu/a1/SDLPOP.VMU", O_WRONLY);
+   fs_write(file, pkg_out, pkg_size);
+   fs_close(file);
+
+   // Free unused memory
+   free(pkg_out);
+   free(data);
+   free(zipdata);
+
+
 	} else {
 		perror("quick_save: fopen");
 		printf("Tried to open for writing: %s\n", path);
@@ -447,6 +504,42 @@ void restore_room_after_quick_load() {
 }
 
 int quick_load(void) {
+
+//vmu
+
+   int file;
+   int filesize;
+   unsigned long unzipsize;
+   uint8* data;
+   uint8* unzipdata;
+   vmu_pkg_t pkg;
+
+   // Remove VMU header
+   fs_copy("/vmu/a1/SDLPOP.VMU", "/vmu/a1/SDLPOP.SAV"); 
+   file = fs_open("/vmu/a1/SDLPOP.SAV", O_RDONLY);
+   if(file == 0) return -1;
+   filesize = fs_total(file);
+   if(filesize <= 0) return -1;
+   data = (uint8*)malloc(filesize);
+   fs_read(file, data, filesize);
+   vmu_pkg_parse(data, &pkg); // todo only parse encrypted files
+   fs_close(file);
+
+   // Allocate memory for the uncompressed data
+   unzipdata = (uint8 *)malloc(65536);
+   unzipsize = 65536;
+
+   // Uncompress the data to the CWD
+   uncompress(unzipdata, &unzipsize, (uint8 *)pkg.data, pkg.data_len);
+
+   file = fs_open("/vmu/a1/SDLPOP.SAV", O_WRONLY);
+   fs_write(file, unzipdata, unzipsize);
+   fs_close(file);
+
+   // Free unused memory
+   free(data);
+   free(unzipdata);
+
 	int ok = 0;
 	char custom_quick_path[POP_MAX_PATH];
 	const char* path = get_quick_path(custom_quick_path, sizeof(custom_quick_path));
@@ -472,6 +565,7 @@ int quick_load(void) {
 		ok = quick_process(process_load);
 		fs_close(quick_fp);
 		quick_fp = NULL;
+		fs_unlink("/vmu/a1/SDLPOP.SAV"); // delete unencrypted one
 
 		restore_room_after_quick_load();
 		update_screen();

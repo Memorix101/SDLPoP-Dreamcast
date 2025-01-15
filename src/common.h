@@ -53,6 +53,7 @@ typedef file_t DC_FILE;
 #include <dc/fb_console.h>
 #include <dc/sound/sound.h>
 #include <dc/sound/sfxmgr.h>
+#include <zlib/zlib.h>
 //#include "util.h"
 
 #ifdef __cplusplus
