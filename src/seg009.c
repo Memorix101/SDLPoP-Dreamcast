@@ -1963,7 +1963,6 @@ void stop_digi(void) {
 
 // Decoder for the currently playing OGG sound. (This also holds the playback position.)
 stb_vorbis* ogg_decoder;
-wav_stream_hnd_t sfx_wav;
 
 void stop_ogg(void) {
 	SDL_PauseAudio(1);
@@ -1971,13 +1970,7 @@ void stop_ogg(void) {
 	ogg_playing = 0;
 	SDL_LockAudio();
 	//ogg_decoder = NULL;
-	if(sfx_wav != NULL)
-	{
-		if(wav_is_playing(sfx_wav)) {
-			wav_stop(sfx_wav);
-			wav_destroy(sfx_wav);
-		}
-	}
+	opusplay_stop();
 	SDL_UnlockAudio();
 }
 
@@ -2301,12 +2294,12 @@ sound_buffer_type* load_sound(int index) {
 				char filename[POP_MAX_PATH];
 				if (!skip_mod_data_files) {
 					// before checking the root directory, first try mods/MODNAME/
-					snprintf_check(filename, sizeof(filename), "%s/music/%s.ogg", mod_data_path, sound_name(index));
+					snprintf_check(filename, sizeof(filename), "%s/music/%s.mp3", mod_data_path, sound_name(index));
 					fp = fopen(filename, "rb");
 				}
 				if (fp == NULL && !skip_normal_data_files) {
 					//snprintf_check(filename, sizeof(filename), "data/music/%s.ogg", sound_name(index));
-					snprintf_check(filename, sizeof(filename), "/cd/data/music/wav_output/%s.wav", sound_name(index));
+					snprintf_check(filename, sizeof(filename), "/cd/data/music/opus/%s.opus", sound_name(index));
 					fp = fopen(locate_file(filename), "rb");
 				}
 				if (fp == NULL) {
@@ -2379,23 +2372,14 @@ void play_ogg_sound(sound_buffer_type *buffer) {
 	SDL_UnlockAudio();
 	SDL_PauseAudio(0);*/
 
-	if(sfx_wav != NULL)
-	{
-		if(wav_is_playing(sfx_wav)) {
-			wav_stop(sfx_wav);
-			//wav_destroy(sfx_wav);
-		}
-	}
-
-	sfx_wav = wav_create(buffer->filename, 0);
-	wav_volume(sfx_wav, 255);
-	wav_play(sfx_wav);
+	opusplay_stop();
+	opusplay_play_file(buffer->filename, 0);
 
 	ogg_playing = 1;
 
-		usleep(100000); // wait a moment for wav_is_playing to update
+	usleep(100000); // wait a moment for wav_is_playing to update
 
-	if (!wav_is_playing(sfx_wav)) {
+	if (opusplay_is_playing() == 0) {
    	 	ogg_playing = 0;
     	// printf("Sound not playing. Playback may have failed.\n");
 	} else {
@@ -2815,8 +2799,8 @@ void set_gr_mode(byte grmode) {
 		SDL_SetWindowIcon(window_, icon);
 	}
 
-	snd_init();
-	wav_init();
+    snd_stream_init();
+    opusplay_init();
 	lcd_test();
 	apply_aspect_ratio();
 	window_resized();
@@ -3666,11 +3650,12 @@ void process_events() {
 	// simultaneous SDL2 KEYDOWN and TEXTINPUT events.)
 	
 	print_memory_info();
-	
+	//printf("snddrv.drv_status %d\n", opusplay_is_playing());
+
 	// Push an event if the sound has ended.
-	if(wav_is_playing(sfx_wav)){			
-			//..
-	} else if(!wav_is_playing(sfx_wav)) {
+	if(opusplay_is_playing() == 1){			
+			//...
+	} else if(opusplay_is_playing() == 0) {
 		//printf("wav is playing...\n");
 		//printf("wav: sound ended\n");
 		SDL_Event event;

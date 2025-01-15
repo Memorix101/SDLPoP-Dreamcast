@@ -11,6 +11,9 @@ First, you need to setup and configure KallistiOS according to your operating sy
 After that, compile using these commands in the terminal
 
 ```bash
+
+# compiled with KOS master commit https://github.com/KallistiOS/KallistiOS/tree/949af4bbfdcf42bec68d87d265fa59d831f1b21b
+
 source /opt/toolchains/dc/kos/environ.sh
 
 git clone --depth 1 --branch master https://github.com/GPF/SDL2.git

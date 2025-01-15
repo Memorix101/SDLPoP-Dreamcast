@@ -47,14 +47,12 @@ typedef file_t DC_FILE;
 #include <dc/maple.h>
 #include <dc/maple/controller.h>
 #include <dc/maple/vmu.h>
-#include <adx/adx.h> /* ADX Decoder Library */
+#include <opusplay/opusplay.h>
 #include <dc/sound/stream.h>
-#include <adx/snddrv.h> /* Direct Access to Sound Driver */
-#include <oggvorbis/sndoggvorbis.h>
+#include <dc/sound/sound.h>
 #include <dc/fb_console.h>
 #include <dc/sound/sound.h>
 #include <dc/sound/sfxmgr.h>
-#include <wav/sndwav.h>
 //#include "util.h"
 
 #ifdef __cplusplus
