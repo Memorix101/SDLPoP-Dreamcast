@@ -577,7 +577,7 @@ typedef struct ogg_type {
 	//byte sample_size; // =16
 	int total_length;
 	byte* file_contents;
-	stb_vorbis* decoder;
+	byte* decoder; //stb_vorbis* decoder;
 } ogg_type;
 
 typedef struct converted_audio_type {
@@ -1199,9 +1199,9 @@ names_list_type listname##_list = {.type=0, .names = {&listname, COUNT(listname)
 #define KEY_VALUE_LIST(listname, ...) const key_value_type listname[] = __VA_ARGS__; \
 names_list_type listname##_list = {.type=1, .kv_pairs= {(key_value_type*)&listname, COUNT(listname)}}
 
-#ifndef DREAMCAST
+//#ifndef DREAMCAST
 #pragma pack(push,1)
-#endif
+//#endif
 typedef struct fixes_options_type {
 	byte enable_crouch_after_climbing;
 	byte enable_freeze_time_during_end_music;
@@ -1362,9 +1362,9 @@ typedef struct custom_options_type {
 
 	byte no_mouse_in_ending;
 } custom_options_type;
-#ifndef DREAMCAST
+//#ifndef DREAMCAST
 #pragma pack(pop)
-#endif
+//#endif
 
 typedef struct directory_listing_type directory_listing_type;
 

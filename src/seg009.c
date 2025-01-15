@@ -87,10 +87,8 @@ bool found_share_dir = false;
 #endif
 
 void find_exe_dir(void) {
-	printf("find_exe_dir\n");
 	if (found_exe_dir) return;
 #ifdef __amigaos4__
-	printf("xxx\n");
 	if(g_argc == 0) { // from Workbench
 		struct WBStartup *WBenchMsg = (struct WBStartup *)g_argv;
 		NameFromLock( WBenchMsg->sm_ArgList->wa_Lock, exe_dir, sizeof(exe_dir) );
@@ -99,7 +97,6 @@ void find_exe_dir(void) {
 		NameFromLock( GetProgramDir(), exe_dir, sizeof(exe_dir) );
 	}
 #else
-printf("xxfind_exe_dir\n");
 	snprintf_check(exe_dir, sizeof(exe_dir), "%s", g_argv[0]);
 	char* last_slash = NULL;
 	char* pos = exe_dir;
@@ -112,7 +109,6 @@ printf("xxfind_exe_dir\n");
 		*last_slash = '\0';
 	}
 #endif
-	printf("ddd\n");
 	found_exe_dir = true;
 }
 
@@ -138,13 +134,10 @@ bool file_exists(const char* filename) {
 }
 
 const char* find_first_file_match(char* dst, int size, char* format, const char* filename) {
-	//find_exe_dir();
+	find_exe_dir();
 #if defined WIN32 || _WIN32 || WIN64 || _WIN64 || DREAMCAST
-	//printf("beep d:%s f:%s\n", dst, filename);
-	snprintf_check(dst, size, format, "/rd", filename); // rd
-	// printf("beep dst:%s f:%s file:%s\n", dst, format, filename);
+	snprintf_check(dst, size, format, exe_dir, filename);
 #else
-
 	find_home_dir();
 	find_share_dir();
 	char* dirs[3] = {home_dir, share_dir, exe_dir};
@@ -154,7 +147,6 @@ const char* find_first_file_match(char* dst, int size, char* format, const char*
 			break;
 	}
 #endif
-	// printf("beep dst:%s\n", dst);
 	return (const char*) dst;
 }
 
@@ -177,42 +169,12 @@ const char* locate_save_file_(const char* filename, char* dst, int size) {
 #endif
 	return (const char*) dst;
 }
-
 const char* locate_file_(const char* filename, char* path_buffer, int buffer_size) {
-
-    /*const char *prefix = "/rd/";
-    const char *mods = "/rd/mods";
-    const char *replays = "/rd/replays";
-    const char *cfg = "SDLPoP.cfg";
-    const char *ini = "SDLPoP.ini";
-
-	printf("> locate_file_: %s|\n", filename);
-
-    // Check if the string starts with the prefix
-	if (strncmp(filename, ini, strlen(filename)) == 0) {
-        return "/rd/SDLPoP.ini";
-    } else if (strncmp(filename, cfg, strlen(filename)) == 0) {
-        return "/rd/SDLPoP.ini";
-    } else if (strncmp(filename, replays, strlen(filename)) == 0) {
-        return filename;
-    } else if (strncmp(filename, mods, strlen(filename)) == 0) {
-        return filename;
-    } else if (strncmp(filename, prefix, strlen(prefix)) == 0) {
-        printf("The string starts with '%s'\n", prefix);
-    } else {
-        //printf("The string does not start with '%s'.\n", prefix);
-		char s1[] = "/cd/"; 
-    	strcat(s1, filename);
-		filename = s1;
-    }*/
-
 	if(file_exists(filename)) {
 		return filename;
 	} else {
 		// If failed, it may be that SDLPoP is being run from the wrong different working directory.
 		// We can try to rescue the situation by loading from the directory of the executable.
-		//printf(">> locate_file_ p: %p f: %s\n", path_buffer, filename);
-		//quit(2); // force direct path
 		return find_first_file_match(path_buffer, buffer_size, "%s/%s", filename);
 	}
 }
@@ -483,7 +445,6 @@ int pop_wait(int timer_index,int time) {
 }
 
 static FILE* open_dat_from_root_or_data_dir(const char* filename) {
-	// printf("open_dat_from_root_or_data_dir");
 	FILE* fp = NULL;
 	fp = fopen(filename, "rb");
 
@@ -493,7 +454,6 @@ static FILE* open_dat_from_root_or_data_dir(const char* filename) {
 		snprintf_check(data_path, sizeof(data_path), "data/%s", filename);
 
 		if (!file_exists(data_path)) {
-			// printf("open_dat_from_root_or_data_dir: %s %s\n", data_path, filename);
 			find_first_file_match(data_path, sizeof(data_path), "%s/data/%s", filename);
 		}
 
@@ -1045,7 +1005,6 @@ int set_joy_mode() {
 		// We have a joystick connected, but it's NOT compatible with the SDL_GameController
 		// interface, so we resort to the classic SDL_Joystick interface instead
 		else {
-			printf(">> SDL_JoystickOpen\n");
 			sdl_joystick_ = SDL_JoystickOpen(0);
 			is_joyst_mode = 1;
 			using_sdl_joystick_interface = 1;
@@ -1067,9 +1026,17 @@ surface_type* make_offscreen_buffer(const rect_type* rect) {
 	// stub
 #ifndef USE_ALPHA
 	// Bit order matches onscreen buffer, good for fading.
-	return SDL_CreateRGBSurface(0, rect->right, rect->bottom, 32, Bmsk, Gmsk, Rmsk, 0);
+	#ifdef __amigaos4__
+	return SDL_CreateRGBSurface(0, rect->right, rect->bottom, 24, Rmsk, Gmsk, Bmsk, 0);
+	#else
+	return SDL_CreateRGBSurface(0, rect->right, rect->bottom, 24, 0xFF, 0xFF<<8, 0xFF<<16, 0); //RGB888 (little endian)
+	#endif
 #else
+	#ifdef __amigaos4__
 	return SDL_CreateRGBSurface(0, rect->right, rect->bottom, 32, Rmsk, Gmsk, Bmsk, Amsk);
+	#else
+	return SDL_CreateRGBSurface(0, rect->right, rect->bottom, 32, 0xFF, 0xFF<<8, 0xFF<<16, 0xFFu<<24);
+	#endif
 #endif
 	//return surface;
 }
@@ -1282,7 +1249,7 @@ font_type load_font_from_data(/*const*/ rawfont_type* data) {
 	for (int index = 0, chr = data->first_char; chr <= data->last_char; ++index, ++chr) {
 		/*const*/ image_data_type* image_data = (/*const*/ image_data_type*)((/*const*/ byte*)data + SDL_SwapLE16(data->offsets[index]));
 		//image_data->flags=0;
-		if (image_data->height == SDL_SwapLE16(0)) image_data->height = SDL_SwapLE16(1); // HACK: decode_image() returns NULL if height==0.
+		if (image_data->height == 0) image_data->height = 1; // HACK: decode_image() returns NULL if height==0.
 		image_type* image;
 		chtab->images[index] = image = decode_image(image_data, &dat_pal);
 		if (SDL_SetColorKey(image, SDL_TRUE, 0) != 0) {
@@ -1878,10 +1845,19 @@ peel_type* read_peel_from_screen(const rect_type* rect) {
 	//memset(&result, 0, sizeof(result));
 	result->rect = *rect;
 #ifndef USE_ALPHA
+	#ifdef __amigaos4__
 	SDL_Surface* peel_surface = SDL_CreateRGBSurface(0, rect->right - rect->left, rect->bottom - rect->top,
 	                                                 24, Rmsk, Gmsk, Bmsk, 0);
+	#else
+	SDL_Surface* peel_surface = SDL_CreateRGBSurface(0, rect->right - rect->left, rect->bottom - rect->top,
+	                                                 24, 0xFF, 0xFF<<8, 0xFF<<16, 0);
+	#endif
 #else
+	#ifdef __amigaos4__
 	SDL_Surface* peel_surface = SDL_CreateRGBSurface(0, rect->right - rect->left, rect->bottom - rect->top, 32, Rmsk, Gmsk, Bmsk, Amsk);
+	#else
+	SDL_Surface* peel_surface = SDL_CreateRGBSurface(0, rect->right - rect->left, rect->bottom - rect->top, 32, 0xFF, 0xFF<<8, 0xFF<<16, 0xFFu<<24);
+	#endif
 #endif
 	if (peel_surface == NULL) {
 		sdlperror("read_peel_from_screen: SDL_CreateRGBSurface");
@@ -1987,30 +1963,27 @@ void stop_digi(void) {
 
 // Decoder for the currently playing OGG sound. (This also holds the playback position.)
 stb_vorbis* ogg_decoder;
-
-//sfxhnd_t sfx_wav;
 wav_stream_hnd_t sfx_wav;
 
 void stop_ogg(void) {
-	//SDL_PauseAudio(1);
+	SDL_PauseAudio(1);
 	if (!ogg_playing) return;
 	ogg_playing = 0;
-	//SDL_LockAudio();
+	SDL_LockAudio();
 	//ogg_decoder = NULL;
-	//SDL_UnlockAudio();
-	if(wav_is_playing(sfx_wav)){
-		wav_stop(sfx_wav);
+	if(sfx_wav != NULL)
+	{
+		if(wav_is_playing(sfx_wav)) {
+			wav_stop(sfx_wav);
+			wav_destroy(sfx_wav);
+		}
 	}
+	SDL_UnlockAudio();
 }
 
 // seg009:7214
 void stop_sounds() {
 	// stub
-	printf("stop_sounds\n");
-	//sndoggvorbis_stop();
-	//snd_sfx_stop_all();
-	//snd_sfx_unload(sfx_wav);
-	//snd_sfx_unload_all();
 	stop_digi();
 	stop_midi();
 	speaker_sound_stop();
@@ -2155,16 +2128,12 @@ void ogg_callback(void *userdata, Uint8 *stream, int len) {
 	}
 	// Push an event if the sound has ended.
 	if (samples_filled == 0) {
-		printf("ogg_callback(): sound ended\n");
+		//printf("ogg_callback(): sound ended\n");
 		SDL_Event event;
 		memset(&event, 0, sizeof(event));
 		event.type = SDL_USEREVENT;
 		event.user.code = userevent_SOUND;
 		ogg_playing = 0;
-		if(wav_is_playing(sfx_wav)){
-			wav_stop(sfx_wav);
-			wav_destroy(sfx_wav);
-		}
 		SDL_PushEvent(&event);
 	}*/
 }
@@ -2247,12 +2216,12 @@ void init_digi() {
 	if (digi_unavailable) return;
 	if (digi_audiospec != NULL) return;
 	// Open the audio device. Called once.
-	printf("init_digi(): called\n");
+	//printf("init_digi(): called\n");
 
 	SDL_AudioFormat desired_audioformat;
 	SDL_version version;
 	SDL_GetVersion(&version);
-	printf("SDL Version = %d.%d.%d\n", version.major, version.minor, version.patch);
+	//printf("SDL Version = %d.%d.%d\n", version.major, version.minor, version.patch);
 	if (version.major <= 2 && version.minor <= 0 && version.patch <= 3) {
 		// In versions before 2.0.4, 16-bit audio samples don't work properly (the sound becomes garbled).
 		// See: https://bugzilla.libsdl.org/show_bug.cgi?id=2389
@@ -2317,7 +2286,7 @@ char* sound_name(int index) {
 
 sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer);
 
-/*sound_buffer_type* load_sound(int index) {
+sound_buffer_type* load_sound(int index) {
 	sound_buffer_type* result = NULL;
 	//printf("load_sound(%d)\n", index);
 	init_digi();
@@ -2336,46 +2305,46 @@ sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer);
 					fp = fopen(filename, "rb");
 				}
 				if (fp == NULL && !skip_normal_data_files) {
-					snprintf_check(filename, sizeof(filename), "/cd/data/music/ogg/%s.ogg", sound_name(index));
+					//snprintf_check(filename, sizeof(filename), "data/music/%s.ogg", sound_name(index));
+					snprintf_check(filename, sizeof(filename), "/cd/data/music/wav_output/%s.wav", sound_name(index));
 					fp = fopen(locate_file(filename), "rb");
 				}
 				if (fp == NULL) {
 					break;
 				}
 				// Read the entire file (undecoded) into memory.
-				struct stat info;
+				/*struct stat info;
 				if (fstat(fileno(fp), &info))
 					break;
 				size_t file_size = (size_t) MAX(0, info.st_size);
 				byte* file_contents = malloc(file_size);
 				if (fread(file_contents, 1, file_size, fp) != file_size) {
-					 fprintf(stderr, "Failed to read file contents: expected %zu, got less.\n", file_size);
 					free(file_contents);
 					fclose(fp);
 					break;
-				}
-				if (file_contents == NULL) {
-    				fprintf(stderr, "Failed to allocate memory for file contents.\n");
-    				break;
-				}
+				}*/
 				fclose(fp);
 
 				// Decoding the entire file immediately would make the loading time much longer.
 				// However, we can also create the decoder now, and only use it when we are actually playing the file.
 				// (In the audio callback, we'll decode chunks of samples to the output stream, as needed).
-				int error = 0;
+				/*int error = 0;
 				stb_vorbis* decoder = stb_vorbis_open_memory(file_contents, (int)file_size, &error, NULL);
 				if (decoder == NULL) {
-					//printf("Error %d when creating decoder from file \"%s\"!\n", error, filename);
-					   fprintf(stderr, "Failed to decode file: error=%d, filename=%s, file_size=%zu\n", error, filename, file_size);
+					printf("Error %d when creating decoder from file \"%s\"!\n", error, filename);
 					free(file_contents);
 					break;
-				}
+				}*/
+
 				result = malloc(sizeof(sound_buffer_type));
+				
+				strncpy(result->filename, &filename, sizeof(result->filename) - 1);
+				result->filename[sizeof(result->filename) - 1] = '\0'; // Ensure null-termination
+
 				result->type = sound_ogg;
-				result->ogg.total_length = stb_vorbis_stream_length_in_samples(decoder) * sizeof(short);
-				result->ogg.file_contents = file_contents; // Remember in case we want to free the sound later.
-				result->ogg.decoder = decoder;
+				//result->ogg.total_length = stb_vorbis_stream_length_in_samples(decoder) * sizeof(short);
+				//result->ogg.file_contents = file_contents; // Remember in case we want to free the sound later.
+				//result->ogg.decoder = decoder;
 			} while(0); // do once (breakable block)
 		} else {
 			//printf("sound_names = %p\n", sound_names);
@@ -2395,195 +2364,13 @@ sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer);
 		fprintf(stderr, "Failed to load sound %d '%s'\n", index, sound_name(index));
 	}
 	return result;
-}*/
-
-/*
-sound_buffer_type* load_sound(int index) {
-    sound_buffer_type* result = NULL;
-    init_digi();
-    if (enable_music && !digi_unavailable && index >= 0 && index < max_sound_id) {
-        if (sound_names != NULL && sound_name(index) != NULL) {
-            do {
-                FILE* fp = NULL;
-                char filename[POP_MAX_PATH];
-                if (!skip_mod_data_files) {
-                    snprintf_check(filename, sizeof(filename), "%s/music/%s.ogg", mod_data_path, sound_name(index));
-                    fp = fopen(filename, "rb");
-                }
-                if (fp == NULL && !skip_normal_data_files) {
-                    snprintf_check(filename, sizeof(filename), "/cd/data/music/%s.ogg", sound_name(index));
-                    fp = fopen(locate_file(filename), "rb");
-                }
-                if (fp == NULL) {
-                    break;
-                }
-
-                struct stat info;
-                if (fstat(fileno(fp), &info)) {
-                    fclose(fp);
-                    break;
-                }
-
-                size_t file_size = (size_t) MAX(0, info.st_size);
-                byte* file_contents = malloc(file_size);
-                if (fread(file_contents, 1, file_size, fp) != file_size) {
-                    free(file_contents);
-                    fclose(fp);
-                    break;
-                }
-                fclose(fp);
-
-          /*      int error = 0;
-				stb_vorbis_alloc alloc = {
-    .alloc_buffer = malloc(512 * 1024), // 128 KB buffer
-    .alloc_buffer_length_in_bytes = 128 * 1024
-};
-
-if (!alloc.alloc_buffer) {
-    fprintf(stderr, "Failed to allocate memory for stb_vorbis.\n");
-    return NULL;
 }
-
-stb_vorbis* decoder = stb_vorbis_open_memory(file_contents, (int)file_size, &error, &alloc);
-if (!decoder) {
-    printf("Error %d when creating decoder from file \"%s\"!\n", error, filename);
-    free(alloc.alloc_buffer);
-    return NULL;
-}*/
-/*
-                int error = 0;
-                stb_vorbis* decoder = stb_vorbis_open_memory(file_contents, (int)file_size, &error, NULL);
-                if (decoder == NULL) {
-                    printf("Error %d when creating decoder from file \"%s\"!\n", error, filename);
-                    free(file_contents);
-                    break;
-                }
-
-                result = malloc(sizeof(sound_buffer_type));
-                if (!result) {
-                    free(file_contents);
-                    stb_vorbis_close(decoder);
-                    break;
-                }
-
-                result->type = sound_ogg;
-                result->ogg.total_length = stb_vorbis_stream_length_in_samples(decoder) * sizeof(short);
-                result->ogg.file_contents = file_contents;
-                result->ogg.decoder = decoder;
-
-            } while (0);
-        }
-    }
-
-    if (!result) {
-        result = (sound_buffer_type*) load_from_opendats_alloc(index + 10000, "bin", NULL, NULL);
-    }
-
-    if (result && (result->type & 7) == sound_digi) {
-        sound_buffer_type* converted = convert_digi_sound(result);
-        free(result);
-        result = converted;
-    }
-
-    if (!result && !skip_normal_data_files) {
-        fprintf(stderr, "Failed to load sound %d '%s'\n", index, sound_name(index));
-    }
-    return result;
-}*/
-
-sound_buffer_type* load_sound(int index) {
-    sound_buffer_type* result = NULL;
-    init_digi();
-    if (enable_music && !digi_unavailable && result == NULL && index >= 0 && index < max_sound_id) {
-        if (sound_names != NULL && sound_name(index) != NULL) {
-            do {
-                FILE* fp = NULL;
-                char filename[POP_MAX_PATH];
-                if (!skip_mod_data_files) {
-                    snprintf_check(filename, sizeof(filename), "%s/music/%s.ogg", mod_data_path, sound_name(index));
-                    fp = fopen(filename, "rb");
-                }
-                if (fp == NULL && !skip_normal_data_files) {
-                    //snprintf_check(filename, sizeof(filename), "/cd/data/music/%s.ogg", sound_name(index));
-                    snprintf_check(filename, sizeof(filename), "/cd/data/music/wav_output/%s.wav", sound_name(index));
-                    fp = fopen(locate_file(filename), "rb");
-                }
-                if (fp == NULL) {
-					printf("Failed to open file: %s\n", filename);
-                    break;
-                }
-				if(fp){
-					//printf("File opened successfully: %s\n", filename);
-				}
-
-			/*int error = 0;
-
-			stb_vorbis *decoder = stb_vorbis_open_file(fp, 1, &error, NULL);
-			if (!decoder) {
-    			printf("Failed to initialize stb_vorbis decoder. Error code: %d\n", error);
-				break;
-			} else {
-				printf("stb_vorbis decoder allocated!\n");
-			}*/
-                fclose(fp);
-
-                result = malloc(sizeof(sound_buffer_type));
-
-				strncpy(result->filename, &filename, sizeof(result->filename) - 1);
-				result->filename[sizeof(result->filename) - 1] = '\0'; // Ensure null-termination
-				// printf("Filename: %s\n", result->filename);
-
-                result->type = sound_ogg;
-                //result->ogg.total_length = stb_vorbis_stream_length_in_samples(decoder) * sizeof(short);
-                //result->ogg.file_contents = NULL; // No file_contents since it's handled by stb_vorbis_open_filename.
-                //result->ogg.decoder = decoder;
-
-            } while (0); // do once (breakable block)
-        }
-    }
-    if (result == NULL) {
-        result = (sound_buffer_type*) load_from_opendats_alloc(index + 10000, "bin", NULL, NULL);
-    }
-    if (result != NULL && (result->type & 7) == sound_digi) {
-        //sound_buffer_type* converted = convert_digi_sound(result);
-        //free(result);
-        //result = converted;
-    }
-    if (result == NULL && !skip_normal_data_files) {
-        fprintf(stderr, "Failed to load sound %d '%s'\n", index, sound_name(index));
-    }
-    return result;
-}
-
-static pthread_t ogg_thread;
-static int ogg_thread_running = 0;
-
-// Thread function to monitor playback
-/*void* ogg_watch_thread(void* arg) {
-    while (ogg_playing) {
-        if (!wav_is_playing(sfx_wav)) {
-			printf("finished playback ..\n");
-            ogg_playing = 0;
-        } else {
-			//printf("playback ..\n");
-		}
-        usleep(100000); // Check every 100ms
-    }
-
-    // Clean up after playback ends
-    if (sfx_wav) {
-        wav_stop(sfx_wav);
-        wav_destroy(sfx_wav);
-        sfx_wav = NULL;
-    }
-    ogg_thread_running = 0;
-    return NULL;
-}*/
 
 void play_ogg_sound(sound_buffer_type *buffer) {
 	init_digi();
 	if (digi_unavailable) return;
 	stop_sounds();
+
 	// Need to rewind the music, or else the decoder might continue where it left off, the last time this sound played.
 	/*stb_vorbis_seek_start(buffer->ogg.decoder);
 
@@ -2592,13 +2379,12 @@ void play_ogg_sound(sound_buffer_type *buffer) {
 	SDL_UnlockAudio();
 	SDL_PauseAudio(0);*/
 
-	if(wav_is_playing(sfx_wav)){
-		wav_stop(sfx_wav);
-	}
-
 	if(sfx_wav != NULL)
 	{
-		wav_destroy(sfx_wav);
+		if(wav_is_playing(sfx_wav)) {
+			wav_stop(sfx_wav);
+			//wav_destroy(sfx_wav);
+		}
 	}
 
 	sfx_wav = wav_create(buffer->filename, 0);
@@ -2607,7 +2393,7 @@ void play_ogg_sound(sound_buffer_type *buffer) {
 
 	ogg_playing = 1;
 
-	usleep(100000); // wait a moment for wav_is_playing to update
+		usleep(100000); // wait a moment for wav_is_playing to update
 
 	if (!wav_is_playing(sfx_wav)) {
    	 	ogg_playing = 0;
@@ -2661,15 +2447,10 @@ bool determine_wave_version(sound_buffer_type *buffer, waveinfo_type* waveinfo) 
 	}
 }
 
-/*sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer) {
+sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer) {
 	init_digi();
 	if (digi_unavailable) return NULL;
 	waveinfo_type waveinfo;
-
-	//printf("digi_buffer %f\n", digi_buffer->digi.sample_size);
-	//printf("waveinfo %f\n", waveinfo.sample_size);
-	//printf("freq_ratio %f\n", freq_ratio);
-
 	if (false == determine_wave_version(digi_buffer, &waveinfo)) return NULL;
 
 	float freq_ratio = (float)waveinfo.sample_rate /  (float)digi_audiospec->freq;
@@ -2683,12 +2464,12 @@ bool determine_wave_version(sound_buffer_type *buffer, waveinfo_type* waveinfo) 
 	converted_buffer->converted.length = expanded_length;
 
 	byte* source = waveinfo.samples;
-	short* dest = malloc(sizeof(short) * converted_buffer->converted.length); // Allocate memory for all samples
-	if (!dest) {
-    	printf("Failed to allocate memory for samples.\n");
-    	return NULL;
-	}
+#ifdef DREAMCAST
+	short* dest = malloc(sizeof(short) * converted_buffer->converted.length);
 	converted_buffer->converted.samples = dest;
+#else
+	short* dest = converted_buffer->converted.samples;
+#endif
 
 	for (int i = 0; i < expanded_frames; ++i) {
 		float src_frame_float = i * freq_ratio;
@@ -2710,71 +2491,6 @@ bool determine_wave_version(sound_buffer_type *buffer, waveinfo_type* waveinfo) 
 	}
 
 	return converted_buffer;
-}*/
-
-sound_buffer_type* convert_digi_sound(sound_buffer_type* digi_buffer) {
-    init_digi();
-    if (digi_unavailable) return NULL;
-
-    waveinfo_type waveinfo;
-
-    // Determine the wave version and initialize waveinfo
-    if (!determine_wave_version(digi_buffer, &waveinfo)) {
-        return NULL;
-    }
-
-    float freq_ratio = (float)waveinfo.sample_rate / (float)digi_audiospec->freq;
-
-    int source_length = waveinfo.sample_count;
-    int expanded_frames = source_length * digi_audiospec->freq / waveinfo.sample_rate;
-    int expanded_length = expanded_frames * digi_audiospec->channels * sizeof(short);
-
-    // Allocate memory for the converted buffer
-    sound_buffer_type* converted_buffer = malloc(sizeof(sound_buffer_type) + expanded_length);
-    if (!converted_buffer) {
-        printf("Failed to allocate memory for converted_buffer.\n");
-        return NULL;
-    }
-
-    // Initialize converted_buffer
-    converted_buffer->type = sound_digi_converted;
-    converted_buffer->converted.length = expanded_length;
-
-    // Allocate memory for the sample data
-    short* samples = malloc(expanded_length);
-    if (!samples) {
-        printf("Failed to allocate memory for samples.\n");
-        free(converted_buffer); // Free previously allocated memory
-        return NULL;
-    }
-    converted_buffer->converted.samples = samples;
-
-    byte* source = waveinfo.samples;
-    short* write_ptr = samples; // Use a separate pointer for writing
-
-    // Fill the samples buffer with interpolated data
-    for (int i = 0; i < expanded_frames; ++i) {
-        float src_frame_float = i * freq_ratio;
-        int src_frame_0 = (int)src_frame_float; // truncation
-
-        int sample_0 = (source[src_frame_0] | (source[src_frame_0] << 8)) - 32768;
-        short interpolated_sample;
-
-        if (src_frame_0 >= waveinfo.sample_count - 1) {
-            interpolated_sample = (short)sample_0;
-        } else {
-            int src_frame_1 = src_frame_0 + 1;
-            float alpha = src_frame_float - src_frame_0;
-            int sample_1 = (source[src_frame_1] | (source[src_frame_1] << 8)) - 32768;
-            interpolated_sample = (short)((1.0f - alpha) * sample_0 + alpha * sample_1);
-        }
-
-        for (int channel = 0; channel < digi_audiospec->channels; ++channel) {
-            *write_ptr++ = interpolated_sample;
-        }
-    }
-	free(samples);
-    return converted_buffer;
 }
 
 // seg009:74F0
@@ -2785,43 +2501,27 @@ void play_digi_sound(sound_buffer_type* buffer) {
 	stop_digi();
 //	stop_sounds();
 	//printf("play_digi_sound(): called\n");
-
 	if ((buffer->type & 7) != sound_digi_converted) {
 		printf("Tried to play unconverted digi sound.\n");
 		return;
 	}
-
-	if(buffer->type == sound_digi_converted){
-		SDL_LockAudio();
-		digi_buffer = (byte*) buffer->converted.samples;
-		digi_playing = 1;
-		digi_remaining_length = buffer->converted.length;
-		digi_remaining_pos = digi_buffer;
-		SDL_UnlockAudio();
-		SDL_PauseAudio(0);
-	}
+	SDL_LockAudio();
+	digi_buffer = (byte*) buffer->converted.samples;
+	digi_playing = 1;
+	digi_remaining_length = buffer->converted.length;
+	digi_remaining_pos = digi_buffer;
+	SDL_UnlockAudio();
+	SDL_PauseAudio(0);
 }
 
-/*void free_sound(sound_buffer_type* buffer) {
+void free_sound(sound_buffer_type* buffer) {
 	if (buffer == NULL) return;
 	if (buffer->type == sound_ogg) {
 		stb_vorbis_close(buffer->ogg.decoder);
 		free(buffer->ogg.file_contents);
 	}
 	free(buffer);
-}*/
-
-// Ensure proper cleanup of allocated memory
-void free_sound(sound_buffer_type* buffer) {
-    if (buffer) {
-        if (buffer->converted.samples) {
-            free(buffer->converted.samples);
-            buffer->converted.samples = NULL;
-        }
-        free(buffer);
-    }
 }
-
 
 // seg009:7220
 void play_sound_from_buffer(sound_buffer_type* buffer) {
@@ -2838,17 +2538,14 @@ void play_sound_from_buffer(sound_buffer_type* buffer) {
 	}
 	switch (buffer->type & 7) {
 		case sound_speaker:
-			//play_speaker_sound(buffer);
+			play_speaker_sound(buffer);
 		break;
 		case sound_digi_converted:
 		case sound_digi:
-			// convert digi	
-			buffer = convert_digi_sound(buffer);
 			play_digi_sound(buffer);
 		break;
 		case sound_midi:
-			//play_midi_sound(buffer);
-			//printf("Playing ... %s\n", buffer->filename);
+			play_midi_sound(buffer);
 		break;
 		case sound_ogg:
 			printf("Playing ... %s\n", buffer->filename);
@@ -2856,10 +2553,9 @@ void play_sound_from_buffer(sound_buffer_type* buffer) {
 		break;
 		default:
 			printf("Tried to play unimplemented sound type %d.\n", buffer->type);
-			//quit(1);
+			quit(1);
 		break;
 	}
-	free(buffer);
 }
 
 void turn_music_on_off(byte new_state) {
@@ -2909,9 +2605,15 @@ void window_resized() {
 void init_overlay(void) {
 	static bool initialized = false;
 	if (!initialized) {
+#ifdef __amigaos4__
 		overlay_surface = SDL_CreateRGBSurface(0, 320, 200, 32, Rmsk, Gmsk, Bmsk, Amsk);
-		//merged_surface = SDL_CreateRGBSurface(0, 320, 200, 32, Rmsk, Gmsk, Bmsk, 0);
-		merged_surface = SDL_CreateRGBSurface(0, 320, 200, 32, Bmsk, Gmsk, Rmsk, 0); // pause menu
+		merged_surface = SDL_CreateRGBSurface(0, 320, 200, 24, Rmsk, Gmsk, Bmsk, 0);
+#else
+		//overlay_surface = SDL_CreateRGBSurface(0, 320, 200, 32, 0xFF, 0xFF << 8, 0xFF << 16, 0xFFu << 24) ;
+		overlay_surface = SDL_CreateRGBSurface(0, 320, 200, 32, Rmsk, Gmsk, Bmsk, Amsk);
+		merged_surface = SDL_CreateRGBSurface(0, 320, 200, 24, Rmsk, Gmsk, Bmsk, 0);
+		//merged_surface = SDL_CreateRGBSurface(0, 320, 200, 32, Bmsk, Gmsk, Rmsk, 0); // pause menu
+#endif
 		initialized = true;
 	}
 }
@@ -2928,9 +2630,9 @@ void init_scaling(void) {
 	if (scaling_type == 1) {
 		if (!is_renderer_targettexture_supported && onscreen_surface_2x == NULL) {
 #ifdef __amigaos4__
-			overlay_surface = SDL_CreateRGBSurface(0, 320*2, 200*2, 24, Rmsk, Gmsk, Bmsk, 0);
+		overlay_surface = SDL_CreateRGBSurface(0, 320*2, 200*2, 24, Rmsk, Gmsk, Bmsk, 0);
 #else
-			onscreen_surface_2x = SDL_CreateRGBSurface(0, 320*2, 200*2, 24, Rmsk, Gmsk, Bmsk, 0);
+			onscreen_surface_2x = SDL_CreateRGBSurface(0, 320*2, 200*2, 24, 0xFF, 0xFF << 8, 0xFF << 16, 0) ;
 #endif
 		}
 		if (texture_fuzzy == NULL) {
@@ -3035,11 +2737,7 @@ void lcd_test() {
 
 // seg009:38ED
 void set_gr_mode(byte grmode) {
-
-	SDL_SetHint(SDL_HINT_VIDEO_DOUBLE_BUFFER, "1");
-    // SDL_SetHint(SDL_HINT_DC_VIDEO_MODE, "SDL_DC_TEXTURED_VIDEO");
-    SDL_SetHint(SDL_HINT_DC_VIDEO_MODE, "SDL_DC_DMA_VIDEO");
-	//SDL_setenv("SDL_AUDIODRIVER", "dummy", 1);
+	SDL_SetHint(SDL_HINT_DC_VIDEO_MODE, "SDL_DC_DMA_VIDEO");
 #ifdef SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING
 	SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
 #endif
@@ -3086,7 +2784,7 @@ void set_gr_mode(byte grmode) {
 	                           SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 	                           pop_window_width, pop_window_height, flags);
 	// Make absolutely sure that VSync will be off, to prevent timer issues.
-	//SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
+	SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
 	flags = 0;
 	switch (use_hardware_acceleration) {
 		case 0:  flags |= SDL_RENDERER_SOFTWARE;    break;
@@ -3095,8 +2793,7 @@ void set_gr_mode(byte grmode) {
 		         // fallthrough!
 		default: break;
 	}
-	SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "software");  
-	renderer_ = SDL_CreateRenderer(window_, 1 , flags | SDL_RENDERER_TARGETTEXTURE);
+	renderer_ = SDL_CreateRenderer(window_, -1 , flags | SDL_RENDERER_TARGETTEXTURE);
 	SDL_RendererInfo renderer_info;
 	if (SDL_GetRendererInfo(renderer_, &renderer_info) == 0) {
 		if (renderer_info.flags & SDL_RENDERER_TARGETTEXTURE) {
@@ -3111,16 +2808,14 @@ void set_gr_mode(byte grmode) {
 #endif
 	}
 
-	/*SDL_Surface* icon = IMG_Load(locate_file("data/icon.png"));
+	SDL_Surface* icon = IMG_Load(locate_file("data/icon.png"));
 	if (icon == NULL) {
 		sdlperror("set_gr_mode: Could not load icon");
 	} else {
 		SDL_SetWindowIcon(window_, icon);
-	}*/
+	}
 
 	snd_init();
-    snd_stream_init();
-    //sndoggvorbis_init();
 	wav_init();
 	lcd_test();
 	apply_aspect_ratio();
@@ -3132,7 +2827,11 @@ void set_gr_mode(byte grmode) {
 	 * subsequently displayed.
 	 * The function handling the screen updates is update_screen()
 	 * */
-	onscreen_surface_ = SDL_CreateRGBSurface(0, 320, 200, 32, Bmsk, Gmsk, Rmsk, 0);
+#ifdef __amigaos4__
+	onscreen_surface_ = SDL_CreateRGBSurface(0, 320, 200, 24, Rmsk, Gmsk, Bmsk, 0);
+#else
+	onscreen_surface_ = SDL_CreateRGBSurface(0, 320, 200, 24, 0xFF, 0xFF << 8, 0xFF << 16, 0);
+#endif
 	if (onscreen_surface_ == NULL) {
 		sdlperror("set_gr_mode: SDL_CreateRGBSurface");
 		quit(1);
@@ -3535,8 +3234,6 @@ image_type* method_3_blit_mono(image_type* image,int xpos,int ypos,int blitter,b
 	}
 	SDL_Surface* colored_image = SDL_ConvertSurfaceFormat(image, SDL_PIXELFORMAT_ARGB8888, 0);
 
-	//printf("method_3_blit_mono %dx%d\n", w, h);
-
 	SDL_SetSurfaceBlendMode(colored_image, SDL_BLENDMODE_NONE);
 	/* Causes problems with SDL 2.0.5 (see #105)
 	if (SDL_SetColorKey(colored_image, SDL_TRUE, 0) != 0) {
@@ -3683,13 +3380,17 @@ void blit_xor(SDL_Surface* target_surface, SDL_Rect* dest_rect, SDL_Surface* ima
 		printf("blit_xor: dest_rect and src_rect have different sizes\n");
 		quit(1);
 	}
-	SDL_Surface* helper_surface = SDL_CreateRGBSurface(0, dest_rect->w, dest_rect->h, 32, Rmsk, Gmsk, Bmsk, 0);
+#ifdef __amigaos4__
+	SDL_Surface* helper_surface = SDL_CreateRGBSurface(0, dest_rect->w, dest_rect->h, 24, Rmsk, Gmsk, Bmsk, 0);
+#else
+	SDL_Surface* helper_surface = SDL_CreateRGBSurface(0, dest_rect->w, dest_rect->h, 24, 0xFF, 0xFF<<8, 0xFF<<16, 0);
+#endif
 	if (helper_surface == NULL) {
 		sdlperror("blit_xor: SDL_CreateRGBSurface");
 		quit(1);
 	}
 	SDL_Surface* image_24 = SDL_ConvertSurface(image, helper_surface->format, 0);
-	//SDL_CreateRGBSurface(0, src_rect->w, src_rect->h, 24, Rmsk, Gmsk, Bmsk, 0);
+	//SDL_CreateRGBSurface(0, src_rect->w, src_rect->h, 24, 0xFF, 0xFF<<8, 0xFF<<16, 0);
 	if (image_24 == NULL) {
 		sdlperror("blit_xor: SDL_CreateRGBSurface");
 		quit(1);
@@ -3915,7 +3616,6 @@ void toggle_fullscreen(void) {
 
 bool ignore_tab = false;
 
-
 //dc controller
 maple_device_t *cont;
 cont_state_t *state;
@@ -3950,11 +3650,11 @@ void print_memory_info() {
     float free_memory_mb = free_memory / (1024.0f * 1024.0f);
 
     // Print memory information
-    printf("Memory Base:       %p\n", base);
+    /*printf("Memory Base:       %p\n", base);
     printf("Memory Top:        %p\n", top);
     printf("Current Heap End:  %p\n", current);
     printf("Total Memory:      %u bytes (%.2f MB)\n", total_memory, total_memory_mb);
-    printf("Used Memory:       %u bytes (%.2f MB)\n", used_memory, used_memory_mb);
+    printf("Used Memory:       %u bytes (%.2f MB)\n", used_memory, used_memory_mb);*/
     printf("Free Memory:       %u bytes (%.2f MB)\n", free_memory, free_memory_mb);
 }
 
@@ -3965,12 +3665,11 @@ void process_events() {
 	// (We still want to process all events in the queue. For instance, there might be
 	// simultaneous SDL2 KEYDOWN and TEXTINPUT events.)
 	
-	//print_memory_info();
+	print_memory_info();
 	
 	// Push an event if the sound has ended.
 	if(wav_is_playing(sfx_wav)){			
-			//wav_stop(sfx_wav);
-			//wav_destroy(sfx_wav);
+			//..
 	} else if(!wav_is_playing(sfx_wav)) {
 		//printf("wav is playing...\n");
 		//printf("wav: sound ended\n");
@@ -4442,12 +4141,17 @@ void init_timer(int frequency) {
 	perf_counters_per_tick = perf_frequency / fps;
 	milliseconds_per_counter = 1000.0f / perf_frequency;
 #else
+#ifdef DREAMCAST
+	global_timer = SDL_AddTimer(1000/frequency, timer_callback, NULL);
+#endif
 	if (global_timer != 0) {
 		if (!SDL_RemoveTimer(global_timer)) {
 			sdlperror("init_timer: SDL_RemoveTimer");
 		}
 	}
+#ifndef DREAMCAST
 	global_timer = SDL_AddTimer(1000/frequency, timer_callback, NULL);
+#endif
 	if (global_timer == 0) {
 		sdlperror("init_timer: SDL_AddTimer");
 		quit(1);
@@ -4853,3 +4557,4 @@ int has_timer_stopped(int timer_index) {
 	}
 #endif
 }
+
