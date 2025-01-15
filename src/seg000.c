@@ -439,7 +439,7 @@ int quick_save(void) {
    pkg.eyecatch_type = VMUPKG_EC_NONE;
    pkg.data_len = zipsize;
    pkg.data = zipdata;
-   
+
    //vmu_pkg_load_icon(&pkg, "/rd/savegame.ico");
    vmu_pkg_build(&pkg, &pkg_out, &pkg_size);
 
