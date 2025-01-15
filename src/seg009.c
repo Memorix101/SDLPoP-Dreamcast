@@ -2559,7 +2559,7 @@ static pthread_t ogg_thread;
 static int ogg_thread_running = 0;
 
 // Thread function to monitor playback
-void* ogg_watch_thread(void* arg) {
+/*void* ogg_watch_thread(void* arg) {
     while (ogg_playing) {
         if (!wav_is_playing(sfx_wav)) {
 			printf("finished playback ..\n");
@@ -2578,7 +2578,7 @@ void* ogg_watch_thread(void* arg) {
     }
     ogg_thread_running = 0;
     return NULL;
-}
+}*/
 
 void play_ogg_sound(sound_buffer_type *buffer) {
 	init_digi();
@@ -2594,8 +2594,13 @@ void play_ogg_sound(sound_buffer_type *buffer) {
 
 	if(wav_is_playing(sfx_wav)){
 		wav_stop(sfx_wav);
+	}
+
+	if(sfx_wav != NULL)
+	{
 		wav_destroy(sfx_wav);
 	}
+
 	sfx_wav = wav_create(buffer->filename, 0);
 	wav_volume(sfx_wav, 255);
 	wav_play(sfx_wav);
@@ -2610,10 +2615,10 @@ void play_ogg_sound(sound_buffer_type *buffer) {
 	} else {
     	// printf("Sound is playing as expected.\n");
 		// Start the thread to monitor playback if not already running
-   		if (!ogg_thread_running) {
+   		/*if (!ogg_thread_running) {
         	ogg_thread_running = 1;
         	pthread_create(&ogg_thread, NULL, ogg_watch_thread, NULL);
-    	}
+    	}*/
 	}
 }
 
