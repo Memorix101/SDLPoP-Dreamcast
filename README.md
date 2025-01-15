@@ -49,7 +49,7 @@ make
 
 ## Note
 
-- Currently, the game is only playable on an emulator like Flycast or DEMUL
+- Quicksave/Quickload not implemented yet
 - Unstable; may crash
 
 ## Links
