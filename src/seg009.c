@@ -3649,7 +3649,7 @@ void process_events() {
 	// (We still want to process all events in the queue. For instance, there might be
 	// simultaneous SDL2 KEYDOWN and TEXTINPUT events.)
 	
-	print_memory_info();
+	//print_memory_info();
 	//printf("snddrv.drv_status %d\n", opusplay_is_playing());
 
 	// Push an event if the sound has ended.

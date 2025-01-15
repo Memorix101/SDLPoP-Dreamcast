@@ -245,11 +245,20 @@ void start_game() {
 file_t  quick_fp;
 
 int process_save(void* data, size_t data_size) {
-	return fwrite(data, data_size, 1, quick_fp) == 1;
+	//printf("process_save: %d\n", data_size);
+	//	return fs_write(quick_fp, data, data_size) == 1;
+	if(fs_write(quick_fp, data, data_size) > 0)
+		return 1;
+	else 
+		return 0;
 }
 
 int process_load(void* data, size_t data_size) {
-	return fread(data, data_size, 1, quick_fp) == 1;
+	//return fread(data, data_size, 1, quick_fp) == 1;
+	if(fs_read(quick_fp, data, data_size) > 0)
+		return 1;
+	else 
+		return 0;
 }
 
 typedef int process_func_type(void* data, size_t data_size);
@@ -257,6 +266,7 @@ typedef int process_func_type(void* data, size_t data_size);
 int quick_process(process_func_type process_func) {
 	int ok = 1;
 #define process(x) ok = ok && process_func(&(x), sizeof(x))
+	printf("process_func_type: %d\n", ok);
 	// level
 #ifdef USE_DEBUG_CHEATS
 	// Don't load the level if the user holds either Shift key while pressing F9.
@@ -266,6 +276,7 @@ int quick_process(process_func_type process_func) {
 #endif
 	{
 		process(level);
+		printf("level: %d\n", ok);
 	}
 	process(checkpoint);
 	process(upside_down);
@@ -367,7 +378,7 @@ int quick_process(process_func_type process_func) {
 	return ok;
 }
 
-const char* quick_file = "QUICKSAVE.SAV";
+const char* quick_file = "SDLPOP.SAV";
 const char quick_version[] = "V1.16b4 ";
 char quick_control[] = "........";
 
@@ -384,7 +395,8 @@ int quick_save(void) {
 	if (quick_fp != NULL) {
 		process_save((void*) quick_version, COUNT(quick_version));
 		ok = quick_process(process_save);
-		fclose(quick_fp);
+		printf("quick_process: %d\n", ok);
+		fs_close(quick_fp);
 		quick_fp = NULL;
 	} else {
 		perror("quick_save: fopen");
@@ -439,12 +451,12 @@ int quick_load(void) {
 	char custom_quick_path[POP_MAX_PATH];
 	const char* path = get_quick_path(custom_quick_path, sizeof(custom_quick_path));
 	printf("quick_load: %s\n", path);
-	quick_fp = fs_open(path, O_RDONLY | O_DIR); // fopen(path, "rb");
+	quick_fp = fs_open(path, O_RDONLY); // fopen(path, "rb");
 	if (quick_fp != NULL) {
 		// check quicksave version is compatible
 		process_load(quick_control, COUNT(quick_control));
 		if (strcmp(quick_control, quick_version) != 0) {
-			fclose(quick_fp);
+			fs_close(quick_fp);
 			quick_fp = NULL;
 			return 0;
 		}
@@ -458,7 +470,7 @@ int quick_load(void) {
 		word old_rem_tick = rem_tick;
 
 		ok = quick_process(process_load);
-		fclose(quick_fp);
+		fs_close(quick_fp);
 		quick_fp = NULL;
 
 		restore_room_after_quick_load();
@@ -494,6 +506,7 @@ int quick_load(void) {
 
 void check_quick_op() {
 	if (!enable_quicksave) return;
+	//printf("need_quick_save: %d\n", need_quick_save);
 	if (need_quick_save) {
 		if ((!is_feather_fall || fixes->fix_quicksave_during_feather) && quick_save()) {
 			display_text_bottom("QUICKSAVE");
@@ -2415,16 +2428,16 @@ void show_splash() {
 const char* get_writable_file_path(char* custom_path_buffer, size_t max_len, const char* file_name) {
 	// If the SDLPOP_SAVE_PATH environment variable is set, put all saves into the directory it points to.
 	// Otherwise, save to the home directory
-#if defined WIN32 || _WIN32 || WIN64 || _WIN64
-	const char* save_path = getenv("SDLPOP_SAVE_PATH");
+#if defined WIN32 || _WIN32 || WIN64 || _WIN64 || DREAMCAST
+	const char* save_path = "/vmu/a1"; //getenv("SDLPOP_SAVE_PATH");
 #else
 	char save_path[POP_MAX_PATH];
 	const char* custom_save_path = getenv("SDLPOP_SAVE_PATH");
-	const char* home_path = "/vmu";//getenv("HOME");
+	const char* home_path = "/vmu/a1";//getenv("HOME");
 	if (custom_save_path != NULL && custom_save_path[0] != '\0')
 		snprintf_check(save_path, max_len, "%s", custom_save_path);
 	else if (home_path != NULL && home_path[0] != '\0')
-		snprintf_check(save_path, max_len, "%s/%s", home_path, "sdl_pop");
+		snprintf_check(save_path, max_len, "%s%s", home_path, "");
 #endif
 	
 	printf("save_path: %s\n", save_path);

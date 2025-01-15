@@ -55,11 +55,6 @@ make
 
 ```
 
-## Note
-
-- Quicksave/Quickload not implemented yet
-- Unstable; may crash
-
 ## Links
 
 * Forum board: https://forum.princed.org/viewforum.php?f=126
