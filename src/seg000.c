@@ -391,6 +391,8 @@ const char* get_quick_path(char* custom_path_buffer, size_t max_len) {
 	return get_writable_file_path(custom_path_buffer, max_len, quick_file /*QUICKSAVE.SAV*/ );
 }
 
+#include "vmu_icon.h"
+
 int quick_save(void) {
 	int ok = 0;
 	char custom_quick_path[POP_MAX_PATH];
@@ -433,13 +435,24 @@ int quick_save(void) {
    strcpy(pkg.desc_short, "SDLPoP");
    strcpy(pkg.desc_long, "Prince of Persia (SDLPoP) savefile");
    strcpy(pkg.app_id, "SDLPoP");
+   /*
    pkg.icon_cnt = NB_ICONS_MAX;
    pkg.icon_data = vmu_icon;
    pkg.icon_anim_speed = 8;
    pkg.eyecatch_type = VMUPKG_EC_NONE;
+*/
+
+pkg.icon_cnt = 1; // One static icon
+pkg.icon_anim_speed = 0; // No animation
+
+    pkg.data = (const uint8*)&pkg;
+    memcpy((void *)&pkg.icon_pal[0],(void *)&vmu_icon_pal,32);
+    pkg.icon_data = (const uint8*)&vmu_icon_data;
+pkg.eyecatch_type = VMUPKG_EC_NONE; // No eyecatch
+
+
    pkg.data_len = zipsize;
    pkg.data = zipdata;
-
    //vmu_pkg_load_icon(&pkg, "/rd/savegame.ico");
    vmu_pkg_build(&pkg, &pkg_out, &pkg_size);
 
