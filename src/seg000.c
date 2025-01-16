@@ -406,7 +406,7 @@ int quick_save(void) {
 		fs_close(quick_fp);
 		quick_fp = NULL;
 
-// vmu		
+	// vmu		
    file_t file;
    int filesize = 0;
    unsigned long zipsize = 0;
@@ -435,20 +435,20 @@ int quick_save(void) {
    strcpy(pkg.desc_short, "SDLPoP");
    strcpy(pkg.desc_long, "Prince of Persia (SDLPoP) savefile");
    strcpy(pkg.app_id, "SDLPoP");
+
    /*
    pkg.icon_cnt = NB_ICONS_MAX;
    pkg.icon_data = vmu_icon;
    pkg.icon_anim_speed = 8;
    pkg.eyecatch_type = VMUPKG_EC_NONE;
-*/
+	*/
 
-pkg.icon_cnt = 1; // One static icon
-pkg.icon_anim_speed = 0; // No animation
-
+	pkg.icon_cnt = 1; // One static icon
+	pkg.icon_anim_speed = 0; // No animation
     pkg.data = (const uint8*)&pkg;
     memcpy((void *)&pkg.icon_pal[0],(void *)&vmu_icon_pal,32);
     pkg.icon_data = (const uint8*)&vmu_icon_data;
-pkg.eyecatch_type = VMUPKG_EC_NONE; // No eyecatch
+	pkg.eyecatch_type = VMUPKG_EC_NONE; // No eyecatch
 
 
    pkg.data_len = zipsize;
@@ -519,7 +519,6 @@ void restore_room_after_quick_load() {
 int quick_load(void) {
 
 //vmu
-
    int file;
    int filesize;
    unsigned long unzipsize;
@@ -527,88 +526,186 @@ int quick_load(void) {
    uint8* unzipdata;
    vmu_pkg_t pkg;
 
-   // Remove VMU header
-   fs_copy("/vmu/a1/SDLPOP.VMU", "/vmu/a1/SDLPOP.SAV"); 
-   file = fs_open("/vmu/a1/SDLPOP.SAV", O_RDONLY);
-   if(file == 0) return -1;
-   filesize = fs_total(file);
-   if(filesize <= 0) return -1;
-   data = (uint8*)malloc(filesize);
-   fs_read(file, data, filesize);
-   vmu_pkg_parse(data, &pkg); // todo only parse encrypted files
-   fs_close(file);
+    printf("Starting VMU save processing...\n");
 
-   // Allocate memory for the uncompressed data
-   unzipdata = (uint8 *)malloc(65536);
-   unzipsize = 65536;
+    // Step 1: Remove VMU header
+    if (fs_copy("/vmu/a1/SDLPOP.VMU", "/vmu/a1/SDLPOP.SAV") < 0) {
+        printf("Error: Failed to remove VMU header.\n");
+        return -1;
+    }
+    printf("VMU header removed successfully.\n");
 
-   // Uncompress the data to the CWD
-   uncompress(unzipdata, &unzipsize, (uint8 *)pkg.data, pkg.data_len);
+    // Step 2: Open the VMU save file
+    file = fs_open("/vmu/a1/SDLPOP.SAV", O_RDONLY);
+    if (file <= 0) {
+        printf("Error: Failed to open VMU save file for reading.\n");
+        return -1;
+    }
+    printf("Opened VMU save file successfully.\n");
 
-   file = fs_open("/vmu/a1/SDLPOP.SAV", O_WRONLY);
-   fs_write(file, unzipdata, unzipsize);
-   fs_close(file);
+    // Step 3: Get the file size
+    filesize = fs_total(file);
+    if (filesize <= 0) {
+        printf("Error: Invalid file size: %d\n", filesize);
+        fs_close(file);
+        return -1;
+    }
+    printf("VMU save file size: %d bytes.\n", filesize);
 
-   // Free unused memory
-   free(data);
-   free(unzipdata);
+    // Step 4: Allocate memory and read file data
+    data = (uint8*)malloc(filesize);
+    if (!data) {
+        printf("Error: Failed to allocate memory for file data.\n");
+        fs_close(file);
+        return -1;
+    }
+    if (fs_read(file, data, filesize) != filesize) {
+        printf("Error: Failed to read file data.\n");
+        free(data);
+        fs_close(file);
+        return -1;
+    }
+    printf("Read file data successfully.\n");
+    fs_close(file);
 
-	int ok = 0;
-	char custom_quick_path[POP_MAX_PATH];
-	const char* path = get_quick_path(custom_quick_path, sizeof(custom_quick_path));
-	printf("quick_load: %s\n", path);
-	quick_fp = fs_open(path, O_RDONLY); // fopen(path, "rb");
-	if (quick_fp != NULL) {
-		// check quicksave version is compatible
-		process_load(quick_control, COUNT(quick_control));
-		if (strcmp(quick_control, quick_version) != 0) {
-			fs_close(quick_fp);
-			quick_fp = NULL;
-			return 0;
-		}
+    // Step 5: Parse VMU package
+    if (vmu_pkg_parse(data, &pkg) < 0) {
+        printf("Error: Failed to parse VMU package.\n");
+        free(data);
+        return -1;
+    }
+    printf("Parsed VMU package successfully. Data length: %lu bytes.\n", pkg.data_len);
 
-		stop_sounds();
-		draw_rect(&screen_rect, color_0_black);
-		update_screen();
-		delay_ticks(5); // briefly display a black screen as a visual cue
+    // Step 6: Allocate memory for uncompressed data
+    unzipdata = (uint8*)malloc(65536);
+    if (!unzipdata) {
+        printf("Error: Failed to allocate memory for uncompressed data.\n");
+        free(data);
+        return -1;
+    }
+    unzipsize = 65536;
 
-		short old_rem_min = rem_min;
-		word old_rem_tick = rem_tick;
+    // Step 7: Uncompress data
+    if (uncompress(unzipdata, &unzipsize, (uint8*)pkg.data, pkg.data_len) != Z_OK) {
+        printf("Error: Failed to uncompress VMU data.\n");
+        free(data);
+        free(unzipdata);
+        return -1;
+    }
+    printf("Uncompressed data successfully. Uncompressed size: %lu bytes.\n", unzipsize);
 
-		ok = quick_process(process_load);
-		fs_close(quick_fp);
-		quick_fp = NULL;
-		fs_unlink("/vmu/a1/SDLPOP.SAV"); // delete unencrypted one
+    // Step 8: Write uncompressed data back to the save file
+    file = fs_open("/vmu/a1/SDLPOP.SAV", O_WRONLY);
+    if (file <= 0) {
+        printf("Error: Failed to open VMU save file for writing.\n");
+        free(data);
+        free(unzipdata);
+        return -1;
+    }
+    if (fs_write(file, unzipdata, unzipsize) != unzipsize) {
+        printf("Error: Failed to write uncompressed data to save file.\n");
+        free(data);
+        free(unzipdata);
+        fs_close(file);
+        return -1;
+    }
+    printf("Wrote uncompressed data back to save file successfully.\n");
+    fs_close(file);
 
-		restore_room_after_quick_load();
-		update_screen();
+    // Step 9: Free allocated memory
+    free(data);
+    free(unzipdata);
+    printf("Freed allocated memory.\n");
 
-		#ifdef USE_QUICKLOAD_PENALTY
-		// Subtract one minute from the remaining time (if it is above 5 minutes)
-		if (enable_quicksave_penalty &&
-			// don't apply the penalty after time has already stopped!
-			(current_level < /*13*/ custom->victory_stops_time_level || (current_level == /*13*/ custom->victory_stops_time_level && leveldoor_open < 2))
-		) {
-			int ticks_elapsed = 720 * (rem_min - old_rem_min) + (rem_tick - old_rem_tick);
-			// don't restore time at all if the elapsed time is between 0 and 1 minutes
-			if (ticks_elapsed > 0 && ticks_elapsed < 720) {
-				rem_min = old_rem_min;
-				rem_tick = old_rem_tick;
-			}
-			else {
-				if (rem_min == 6) rem_tick = 719; // crop to "5 minutes" exactly, if hitting the threshold in <1 minute
-				if (rem_min > 5 /*be lenient, not much time left*/ || rem_min < 0 /*time runs 'forward' if < 0*/) {
-					--rem_min;
-				}
-			}
+    printf("VMU save processing completed successfully.\n");
+//
+    int ok = 0;
+    char custom_quick_path[POP_MAX_PATH];
+    const char* path = get_quick_path(custom_quick_path, sizeof(custom_quick_path));
+    
+    printf("quick_load: Attempting to load quicksave from %s\n", path);
 
-		}
-		#endif
-	} else {
-		perror("quick_load: fopen");
-		printf("Tried to open for reading: %s\n", path);
-	}
-	return ok;
+    // Attempt to open the quicksave file
+    quick_fp = fs_open(path, O_RDONLY);
+    if (quick_fp != NULL) {
+        printf("quicksave file opened successfully.\n");
+
+        // Step 1: Check quicksave version compatibility
+        printf("Checking quicksave version compatibility...\n");
+        process_load(quick_control, COUNT(quick_control));
+        if (strcmp(quick_control, quick_version) != 0) {
+            printf("Incompatible quicksave version: %s (expected: %s)\n", quick_control, quick_version);
+            fs_close(quick_fp);
+            quick_fp = NULL;
+            return 0;
+        }
+        printf("Quicksave version is compatible.\n");
+
+        // Step 2: Perform pre-load operations
+        printf("Stopping sounds and preparing the screen...\n");
+        stop_sounds();
+        draw_rect(&screen_rect, color_0_black);
+        update_screen();
+        delay_ticks(5); // Briefly display a black screen
+
+        // Backup remaining time
+        short old_rem_min = rem_min;
+        word old_rem_tick = rem_tick;
+
+        // Step 3: Process quicksave data
+        printf("Processing quicksave data...\n");
+        ok = quick_process(process_load);
+
+        // Step 4: Close quicksave file
+        fs_close(quick_fp);
+        quick_fp = NULL;
+        printf("Quicksave file closed.\n");
+
+        // Step 5: Delete the uncompressed quicksave file
+       if (fs_unlink("/vmu/a1/SDLPOP.SAV") == 0) {
+            printf("Temporary uncompressed quicksave file deleted successfully.\n");
+        } else {
+            printf("Warning: Failed to delete temporary uncompressed quicksave file.\n");
+        }
+
+        // Step 6: Restore the room state
+        printf("Restoring room state after quickload...\n");
+        restore_room_after_quick_load();
+        update_screen();
+
+        #ifdef USE_QUICKLOAD_PENALTY
+        // Step 7: Apply quickload penalty (if enabled)
+        printf("Checking and applying quickload penalty...\n");
+        if (enable_quicksave_penalty &&
+            (current_level < custom->victory_stops_time_level || 
+            (current_level == custom->victory_stops_time_level && leveldoor_open < 2))) {
+
+            int ticks_elapsed = 720 * (rem_min - old_rem_min) + (rem_tick - old_rem_tick);
+            if (ticks_elapsed > 0 && ticks_elapsed < 720) {
+                printf("Elapsed time is less than 1 minute, restoring previous time.\n");
+                rem_min = old_rem_min;
+                rem_tick = old_rem_tick;
+            } else {
+                if (rem_min == 6) rem_tick = 719;
+                if (rem_min > 5 || rem_min < 0) {
+                    --rem_min;
+                    printf("Quickload penalty applied: remaining time decremented by 1 minute.\n");
+                }
+            }
+        } else {
+            printf("Quickload penalty not applicable.\n");
+        }
+        #endif
+    } else {
+        // Handle file open failure
+        perror("quick_load: fs_open");
+        printf("Error: Failed to open quicksave file for reading: %s\n", path);
+    }
+
+    // Return the success flag
+    printf("quick_load: Completed with status %d.\n", ok);
+	//delay_ticks(15); // Briefly display a black screen
+    return ok;
 }
 
 void check_quick_op() {
