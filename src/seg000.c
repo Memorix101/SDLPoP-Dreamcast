@@ -27,7 +27,7 @@ The authors of this program may be contacted at https://forum.princed.org
 #endif
 
 // data:461E
-dat_type * dathandle;
+dat_type *dathandle;
 
 // data:4C08
 word need_redraw_because_flipped;
@@ -35,27 +35,31 @@ word need_redraw_because_flipped;
 void fix_sound_priorities(void);
 
 // seg000:0000
-void pop_main() {
-	if (check_param("--version") || check_param("-v")) {
-		printf ("SDLPoP v%s\n", SDLPOP_VERSION);
+void pop_main()
+{
+	if (check_param("--version") || check_param("-v"))
+	{
+		printf("SDLPoP v%s\n", SDLPOP_VERSION);
 		exit(0);
 	}
 
-	if (check_param("--help") || check_param("-h") || check_param("-?")) {
-		printf ("See README.md\n");
+	if (check_param("--help") || check_param("-h") || check_param("-?"))
+	{
+		printf("See README.md\n");
 		exit(0);
 	}
 
-	const char* temp = check_param("seed=");
-	if (temp != NULL) {
-		random_seed = atoi(temp+5);
+	const char *temp = check_param("seed=");
+	if (temp != NULL)
+	{
+		random_seed = atoi(temp + 5);
 		seed_was_init = 1;
 	}
 
-	// debug only: check that the sequence table deobfuscation did not mess things up
-	#ifdef CHECK_SEQTABLE_MATCHES_ORIGINAL
+// debug only: check that the sequence table deobfuscation did not mess things up
+#ifdef CHECK_SEQTABLE_MATCHES_ORIGINAL
 	check_seqtable_matches_original();
-	#endif
+#endif
 
 #ifdef FIX_SOUND_PRIORITIES
 	fix_sound_priorities();
@@ -66,27 +70,31 @@ void pop_main() {
 #ifdef USE_MENU
 	load_ingame_settings();
 #endif
-	if (check_param("mute")) is_sound_on = 0;
+	if (check_param("mute"))
+		is_sound_on = 0;
 	turn_sound_on_off((is_sound_on != 0) * 15); // Turn off sound/music if those options were set.
 
 #ifdef USE_REPLAY
-	if (g_argc > 1) {
+	if (g_argc > 1)
+	{
 		char *filename = g_argv[1]; // file dragged on top of executable or double clicked
 		char *e = strrchr(filename, '.');
-		if (e != NULL && strcasecmp(e, ".P1R") == 0) { // valid replay filename passed as first arg
+		if (e != NULL && strcasecmp(e, ".P1R") == 0)
+		{ // valid replay filename passed as first arg
 			start_with_replay_file(filename);
 		}
 	}
 
 	temp = check_param("validate");
-	if (temp != NULL) {
+	if (temp != NULL)
+	{
 		is_validate_mode = 1;
 		start_with_replay_file(temp);
 	}
 #endif
 
 	// Initialize everything before load_mod_options() so it can show an error dialog if needed.
-	/*video_mode =*/ parse_grmode();
+	/*video_mode =*/parse_grmode();
 	current_target_surface = rect_sthg(onscreen_surface_, &screen_rect);
 	set_hc_pal();
 	init_copyprot_dialog();
@@ -110,7 +118,8 @@ void pop_main() {
 	cheats_enabled = check_param("megahit") != NULL;
 #ifdef USE_DEBUG_CHEATS
 	debug_cheats_enabled = check_param("debug") != NULL;
-	if (debug_cheats_enabled) cheats_enabled = 1; // param 'megahit' not necessary if 'debug' is used
+	if (debug_cheats_enabled)
+		cheats_enabled = 1; // param 'megahit' not necessary if 'debug' is used
 #endif
 	draw_mode = check_param("draw") != NULL && cheats_enabled;
 	demo_mode = check_param("demo") != NULL;
@@ -123,13 +132,16 @@ void pop_main() {
 	dathandle = open_dat("PRINCE.DAT", 'G');
 
 	if (cheats_enabled
-		#ifdef USE_REPLAY
+#ifdef USE_REPLAY
 		|| recording
-		#endif
-	) {
-		for (int i = 15; i >= 0; --i) {
+#endif
+	)
+	{
+		for (int i = 15; i >= 0; --i)
+		{
 			snprintf(sprintf_temp, sizeof(sprintf_temp), "%d", i);
-			if (check_param(sprintf_temp)) {
+			if (check_param(sprintf_temp))
+			{
 				start_level = i;
 				break;
 			}
@@ -149,28 +161,30 @@ void pop_main() {
 	init_game_main();
 }
 
-byte* level_var_palettes;
+byte *level_var_palettes;
 
 // seg000:024F
-void init_game_main() {
-	doorlink1_ad = /*&*/level.doorlinks1;
-	doorlink2_ad = /*&*/level.doorlinks2;
+void init_game_main()
+{
+	doorlink1_ad = /*&*/ level.doorlinks1;
+	doorlink2_ad = /*&*/ level.doorlinks2;
 	prandom(1);
-	if (graphics_mode == gmMcgaVga) {
+	if (graphics_mode == gmMcgaVga)
+	{
 		// Guard palettes
-		guard_palettes = (byte*) load_from_opendats_alloc(10, "bin", NULL, NULL);
+		guard_palettes = (byte *)load_from_opendats_alloc(10, "bin", NULL, NULL);
 		// (blood, hurt flash) #E00030 = red
 		set_pal(12, 0x38, 0x00, 0x0C);
 		// (palace wall pattern) #C09850 = light brown
-		set_pal( 6, 0x30, 0x26, 0x14);
+		set_pal(6, 0x30, 0x26, 0x14);
 
 		// Level color variations (1.3)
 		level_var_palettes = load_from_opendats_alloc(20, "bin", NULL, NULL);
 	}
 	// PRINCE.DAT: sword
-	chtab_addrs[id_chtab_0_sword] = load_sprites_from_file(700, 1<<2, 1);
+	chtab_addrs[id_chtab_0_sword] = load_sprites_from_file(700, 1 << 2, 1);
 	// PRINCE.DAT: flame, sword on floor, potion
-	chtab_addrs[id_chtab_1_flameswordpotion] = load_sprites_from_file(150, 1<<3, 1);
+	chtab_addrs[id_chtab_1_flameswordpotion] = load_sprites_from_file(150, 1 << 3, 1);
 	close_dat(dathandle);
 #ifdef USE_LIGHTING
 	init_lighting();
@@ -182,13 +196,13 @@ void init_game_main() {
 	start_game();
 }
 
-
 // data:02C2
 word first_start = 1;
 // data:4C38
 jmp_buf setjmp_buf;
 // seg000:0358
-void start_game() {
+void start_game()
+{
 #ifdef USE_COPYPROT
 	word which_entry;
 	word entry_used[40];
@@ -197,43 +211,55 @@ void start_game() {
 	// Prevent filling of stack.
 	// start_game is called from many places to restart the game, for example:
 	// process_key, play_frame, draw_game_frame, play_level, control_kid, end_sequence, expired
-	if (first_start) {
+	if (first_start)
+	{
 		first_start = 0;
-		setjmp(/*&*/setjmp_buf);
-	} else {
+		setjmp(/*&*/ setjmp_buf);
+	}
+	else
+	{
 		draw_rect(&screen_rect, color_0_black);
 		show_quotes();
 		clear_screen_and_sounds();
-		longjmp(/*&*/setjmp_buf,-1);
+		longjmp(/*&*/ setjmp_buf, -1);
 	}
 	release_title_images(); // added
-	free_optsnd_chtab(); // added
+	free_optsnd_chtab();	// added
 #ifdef USE_COPYPROT
 	copyprot_plac = prandom(13);
 	memset(&entry_used, 0, sizeof(entry_used));
 	memset(&letts_used, 0, sizeof(letts_used));
-	for (word pos = 0; pos < 14; ++pos) {
-		do {
-			if (pos == copyprot_plac) {
+	for (word pos = 0; pos < 14; ++pos)
+	{
+		do
+		{
+			if (pos == copyprot_plac)
+			{
 				which_entry = copyprot_idx = prandom(39);
-			} else {
+			}
+			else
+			{
 				which_entry = prandom(39);
 			}
-		} while (entry_used[which_entry] || letts_used[copyprot_letter[which_entry]-'A']);
+		} while (entry_used[which_entry] || letts_used[copyprot_letter[which_entry] - 'A']);
 		cplevel_entr[pos] = which_entry;
 		entry_used[which_entry] = 1;
-		letts_used[copyprot_letter[which_entry]-'A'] = 1;
+		letts_used[copyprot_letter[which_entry] - 'A'] = 1;
 	}
 #endif
-	if (custom->skip_title) { // CusPop option: skip the title sequence (level loads instantly)
+	if (custom->skip_title)
+	{ // CusPop option: skip the title sequence (level loads instantly)
 		int level_number = (start_level >= 0) ? start_level : custom->first_level;
 		init_game(level_number);
 		return;
 	}
 
-	if (start_level < 0) {
+	if (start_level < 0)
+	{
 		show_title();
-	} else {
+	}
+	else
+	{
 		init_game(start_level);
 	}
 }
@@ -241,38 +267,43 @@ void start_game() {
 #ifdef USE_QUICKSAVE
 // All these functions return true on success, false otherwise.
 
-//FILE* quick_fp;
-file_t  quick_fp;
+// FILE* quick_fp;
+file_t quick_fp;
 
-int process_save(void* data, size_t data_size) {
-	//printf("process_save: %d\n", data_size);
+int process_save(void *data, size_t data_size)
+{
+	// printf("process_save: %d\n", data_size);
 	//	return fs_write(quick_fp, data, data_size) == 1;
-	if(fs_write(quick_fp, data, data_size) > 0)
+	if (fs_write(quick_fp, data, data_size) > 0)
 		return 1;
-	else 
+	else
 		return 0;
 }
 
-int process_load(void* data, size_t data_size) {
-	//return fread(data, data_size, 1, quick_fp) == 1;
-	if(fs_read(quick_fp, data, data_size) > 0)
+int process_load(void *data, size_t data_size)
+{
+	// return fread(data, data_size, 1, quick_fp) == 1;
+	if (fs_read(quick_fp, data, data_size) > 0)
 		return 1;
-	else 
+	else
 		return 0;
 }
 
-typedef int process_func_type(void* data, size_t data_size);
+typedef int process_func_type(void *data, size_t data_size);
 
-int quick_process(process_func_type process_func) {
+int quick_process(process_func_type process_func)
+{
 	int ok = 1;
 #define process(x) ok = ok && process_func(&(x), sizeof(x))
 	printf("process_func_type: %d\n", ok);
 	// level
 #ifdef USE_DEBUG_CHEATS
 	// Don't load the level if the user holds either Shift key while pressing F9.
-	if (debug_cheats_enabled && (key_states[SDL_SCANCODE_LSHIFT] & KEYSTATE_HELD || key_states[SDL_SCANCODE_RSHIFT] & KEYSTATE_HELD)) {
+	if (debug_cheats_enabled && (key_states[SDL_SCANCODE_LSHIFT] & KEYSTATE_HELD || key_states[SDL_SCANCODE_RSHIFT] & KEYSTATE_HELD))
+	{
 		fseek(quick_fp, sizeof(level), SEEK_CUR);
-	} else
+	}
+	else
 #endif
 	{
 		process(level);
@@ -288,8 +319,8 @@ int quick_process(process_func_type process_func) {
 	process(trobs_count);
 	process(trobs);
 	process(leveldoor_open);
-	//process(exit_room_timer);
-	// kid
+	// process(exit_room_timer);
+	//  kid
 	process(Kid);
 	process(hitp_curr);
 	process(hitp_max);
@@ -337,9 +368,9 @@ int quick_process(process_func_type process_func) {
 	process(is_screaming);
 	process(is_feather_fall);
 	process(last_loose_sound);
-	//process(next_sound);
-	//process(current_sound);
-	// random
+	// process(next_sound);
+	// process(current_sound);
+	//  random
 	process(random_seed);
 	// remaining time
 	process(rem_min);
@@ -378,7 +409,7 @@ int quick_process(process_func_type process_func) {
 	return ok;
 }
 
-const char* quick_file = "SDLPOP.SAV";
+const char *quick_file = "SDLPOP.SAV";
 const char quick_version[] = "V1.16b4 ";
 char quick_control[] = "........";
 
@@ -387,95 +418,98 @@ char quick_control[] = "........";
 #define NB_ICONS_MAX 3
 static unsigned char vmu_icon[ICON_SIZE * NB_ICONS_MAX];
 
-const char* get_quick_path(char* custom_path_buffer, size_t max_len) {
-	return get_writable_file_path(custom_path_buffer, max_len, quick_file /*QUICKSAVE.SAV*/ );
+const char *get_quick_path(char *custom_path_buffer, size_t max_len)
+{
+	return get_writable_file_path(custom_path_buffer, max_len, quick_file /*QUICKSAVE.SAV*/);
 }
 
 #include "vmu_icon.h"
 
-int quick_save(void) {
+int quick_save(void)
+{
 	int ok = 0;
 	char custom_quick_path[POP_MAX_PATH];
-	const char* path = get_quick_path(custom_quick_path, sizeof(custom_quick_path));
+	const char *path = get_quick_path(custom_quick_path, sizeof(custom_quick_path));
 	printf("quick_save: %s\n", path);
-	quick_fp = fs_open(path, O_WRONLY); //fopen(path, "wb");
-	if (quick_fp != NULL) {
-		process_save((void*) quick_version, COUNT(quick_version));
+	quick_fp = fs_open(path, O_WRONLY); // fopen(path, "wb");
+	if (quick_fp != NULL)
+	{
+		process_save((void *)quick_version, COUNT(quick_version));
 		ok = quick_process(process_save);
 		printf("quick_process: %d\n", ok);
 		fs_close(quick_fp);
 		quick_fp = NULL;
 
-	// vmu		
-   file_t file;
-   int filesize = 0;
-   unsigned long zipsize = 0;
-   uint8 *data;
-   uint8 *zipdata;
-   vmu_pkg_t pkg;
-   uint8 *pkg_out;
-   int pkg_size;
+		// vmu
+		file_t file;
+		int filesize = 0;
+		unsigned long zipsize = 0;
+		uint8 *data;
+		uint8 *zipdata;
+		vmu_pkg_t pkg;
+		uint8 *pkg_out;
+		int pkg_size;
 
-   // Reads in the file from the CWD
-   file = fs_open("/vmu/a1/SDLPOP.SAV", O_RDONLY);
-   filesize = fs_total(file);
-   data = (uint8*)malloc(filesize);
-   fs_read(file, data, filesize);
-   fs_close(file);
+		// Reads in the file from the CWD
+		file = fs_open("/vmu/a1/SDLPOP.SAV", O_RDONLY);
+		filesize = fs_total(file);
+		data = (uint8 *)malloc(filesize);
+		fs_read(file, data, filesize);
+		fs_close(file);
 
-   // Allocate some memory for compression
-   zipsize = filesize * 2;
-   zipdata = (uint8*)malloc(zipsize);
+		// Allocate some memory for compression
+		zipsize = filesize * 2;
+		zipdata = (uint8 *)malloc(zipsize);
 
-   // The compressed save
-   compress(zipdata, &zipsize, data, filesize);
+		// The compressed save
+		compress(zipdata, &zipsize, data, filesize);
 
-   // Required VMU header
-   // You will have to have a VMU icon defined under icon_data
-   strcpy(pkg.desc_short, "SDLPoP");
-   strcpy(pkg.desc_long, "Prince of Persia (SDLPoP) savefile");
-   strcpy(pkg.app_id, "SDLPoP");
+		// Required VMU header
+		// You will have to have a VMU icon defined under icon_data
+		strcpy(pkg.desc_short, "SDLPoP");
+		strcpy(pkg.desc_long, "Prince of Persia (SDLPoP) savefile");
+		strcpy(pkg.app_id, "SDLPoP");
 
-   /*
-   pkg.icon_cnt = NB_ICONS_MAX;
-   pkg.icon_data = vmu_icon;
-   pkg.icon_anim_speed = 8;
-   pkg.eyecatch_type = VMUPKG_EC_NONE;
-	*/
+		/*
+		pkg.icon_cnt = NB_ICONS_MAX;
+		pkg.icon_data = vmu_icon;
+		pkg.icon_anim_speed = 8;
+		pkg.eyecatch_type = VMUPKG_EC_NONE;
+		 */
 
-	pkg.icon_cnt = 1; // One static icon
-	pkg.icon_anim_speed = 0; // No animation
-    pkg.data = (const uint8*)&pkg;
-    memcpy((void *)&pkg.icon_pal[0],(void *)&vmu_icon_pal,32);
-    pkg.icon_data = (const uint8*)&vmu_icon_data;
-	pkg.eyecatch_type = VMUPKG_EC_NONE; // No eyecatch
+		pkg.icon_cnt = 1;		 // One static icon
+		pkg.icon_anim_speed = 0; // No animation
+		pkg.data = (const uint8 *)&pkg;
+		memcpy((void *)&pkg.icon_pal[0], (void *)&vmu_icon_pal, 32);
+		pkg.icon_data = (const uint8 *)&vmu_icon_data;
+		pkg.eyecatch_type = VMUPKG_EC_NONE; // No eyecatch
 
+		pkg.data_len = zipsize;
+		pkg.data = zipdata;
+		// vmu_pkg_load_icon(&pkg, "/rd/savegame.ico");
+		vmu_pkg_build(&pkg, &pkg_out, &pkg_size);
 
-   pkg.data_len = zipsize;
-   pkg.data = zipdata;
-   //vmu_pkg_load_icon(&pkg, "/rd/savegame.ico");
-   vmu_pkg_build(&pkg, &pkg_out, &pkg_size);
+		// Save the newly created VMU save to the VMU
+		fs_unlink("/vmu/a1/SDLPOP.SAV"); // delete uncompressed file
+		file = fs_open("/vmu/a1/SDLPOP.VMU", O_WRONLY);
+		fs_write(file, pkg_out, pkg_size);
+		fs_close(file);
 
-   // Save the newly created VMU save to the VMU
-   fs_unlink("/vmu/a1/SDLPOP.SAV"); // delete unecrypted file
-   file = fs_open("/vmu/a1/SDLPOP.VMU", O_WRONLY);
-   fs_write(file, pkg_out, pkg_size);
-   fs_close(file);
-
-   // Free unused memory
-   free(pkg_out);
-   free(data);
-   free(zipdata);
-
-
-	} else {
+		// Free unused memory
+		free(pkg_out);
+		free(data);
+		free(zipdata);
+	}
+	else
+	{
 		perror("quick_save: fopen");
 		printf("Tried to open for writing: %s\n", path);
 	}
 	return ok;
 }
 
-void restore_room_after_quick_load() {
+void restore_room_after_quick_load()
+{
 	int temp1 = curr_guard_color;
 	int temp2 = next_level;
 	reset_level_unused_fields(false);
@@ -484,25 +518,27 @@ void restore_room_after_quick_load() {
 	next_level = temp2;
 
 	// feather fall can only get restored if the fix enabled
-	if (!fixes->fix_quicksave_during_feather && is_feather_fall > 0) {
+	if (!fixes->fix_quicksave_during_feather && is_feather_fall > 0)
+	{
 		is_feather_fall = 0;
 		stop_sounds();
 	}
 
-	//need_full_redraw = 1;
+	// need_full_redraw = 1;
 	different_room = 1;
 	// Show the room where the prince is, even if the player moved the view away from it (with the H,J,U,N keys).
 	next_room = drawn_room = Kid.room;
 	load_room_links();
-	//draw_level_first();
-	//gen_palace_wall_colors();
-	//is_guard_notice = 0; // prevent guard turning around immediately
+	// draw_level_first();
+	// gen_palace_wall_colors();
+	// is_guard_notice = 0; // prevent guard turning around immediately
 	draw_game_frame(); // for falling
-	//redraw_screen(1); // for room_L
+	// redraw_screen(1); // for room_L
 
 	hitp_delta = guardhp_delta = 1; // force HP redraw
 	// Don't draw guard HP if a previously viewed room (with the H,J,U,N keys) had a guard but the current room doesn't have one.
-	if (Guard.room != drawn_room) {
+	if (Guard.room != drawn_room)
+	{
 		// Like in clear_char().
 		Guard.direction = dir_56_none;
 		guardhp_curr = 0;
@@ -512,226 +548,260 @@ void restore_room_after_quick_load() {
 	loadkid_and_opp();
 	// Get rid of "press button" message if kid was dead before quickload.
 	text_time_total = text_time_remaining = 0;
-	//next_sound = current_sound = -1;
+	// next_sound = current_sound = -1;
 	exit_room_timer = 0;
 }
 
-int quick_load(void) {
+int quick_load(void)
+{
+	// vmu
+	int file;
+	int filesize;
+	unsigned long unzipsize;
+	uint8 *data;
+	uint8 *unzipdata;
+	vmu_pkg_t pkg;
 
-//vmu
-   int file;
-   int filesize;
-   unsigned long unzipsize;
-   uint8* data;
-   uint8* unzipdata;
-   vmu_pkg_t pkg;
+	printf("Starting VMU save processing...\n");
 
-    printf("Starting VMU save processing...\n");
+	// Step 1: Remove VMU header
+	/*if (fs_copy("/vmu/a1/SDLPOP.VMU", "/vmu/a1/SDLPOP.SAV") < 0) {
+		printf("Error: Failed to remove VMU header.\n");
+		return -1;
+	}
+	printf("VMU temp copy successfully.\n");*/
 
-    // Step 1: Remove VMU header
-    if (fs_copy("/vmu/a1/SDLPOP.VMU", "/vmu/a1/SDLPOP.SAV") < 0) {
-        printf("Error: Failed to remove VMU header.\n");
-        return -1;
-    }
-    printf("VMU header removed successfully.\n");
+	// Step 2: Open the VMU save file
+	file = fs_open("/vmu/a1/SDLPOP.VMU", O_RDONLY);
+	if (file <= 0)
+	{
+		printf("Error: Failed to open VMU save file for reading.\n");
+		return -1;
+	}
+	printf("Opened VMU save file successfully.\n");
 
-    // Step 2: Open the VMU save file
-    file = fs_open("/vmu/a1/SDLPOP.SAV", O_RDONLY);
-    if (file <= 0) {
-        printf("Error: Failed to open VMU save file for reading.\n");
-        return -1;
-    }
-    printf("Opened VMU save file successfully.\n");
+	// Step 3: Get the file size
+	filesize = fs_total(file);
+	if (filesize <= 0)
+	{
+		printf("Error: Invalid file size: %d\n", filesize);
+		fs_close(file);
+		return -1;
+	}
+	printf("VMU save file size: %d bytes.\n", filesize);
 
-    // Step 3: Get the file size
-    filesize = fs_total(file);
-    if (filesize <= 0) {
-        printf("Error: Invalid file size: %d\n", filesize);
-        fs_close(file);
-        return -1;
-    }
-    printf("VMU save file size: %d bytes.\n", filesize);
+	// Step 4: Allocate memory and read file data
+	data = (uint8 *)malloc(filesize);
+	if (!data)
+	{
+		printf("Error: Failed to allocate memory for file data.\n");
+		fs_close(file);
+		return -1;
+	}
+	if (fs_read(file, data, filesize) != filesize)
+	{
+		printf("Error: Failed to read file data.\n");
+		free(data);
+		fs_close(file);
+		return -1;
+	}
+	printf("Read file data successfully.\n");
+	fs_close(file);
 
-    // Step 4: Allocate memory and read file data
-    data = (uint8*)malloc(filesize);
-    if (!data) {
-        printf("Error: Failed to allocate memory for file data.\n");
-        fs_close(file);
-        return -1;
-    }
-    if (fs_read(file, data, filesize) != filesize) {
-        printf("Error: Failed to read file data.\n");
-        free(data);
-        fs_close(file);
-        return -1;
-    }
-    printf("Read file data successfully.\n");
-    fs_close(file);
+	// Step 5: Parse VMU package
+	if (vmu_pkg_parse(data, &pkg) < 0)
+	{
+		printf("Error: Failed to parse VMU package.\n");
+		free(data);
+		return -1;
+	}
+	printf("Parsed VMU package successfully. Data length: %lu bytes.\n", pkg.data_len);
 
-    // Step 5: Parse VMU package
-    if (vmu_pkg_parse(data, &pkg) < 0) {
-        printf("Error: Failed to parse VMU package.\n");
-        free(data);
-        return -1;
-    }
-    printf("Parsed VMU package successfully. Data length: %lu bytes.\n", pkg.data_len);
+	// Step 6: Allocate memory for uncompressed data
+	unzipdata = (uint8 *)malloc(65536);
+	if (!unzipdata)
+	{
+		printf("Error: Failed to allocate memory for uncompressed data.\n");
+		free(data);
+		return -1;
+	}
+	unzipsize = 65536;
 
-    // Step 6: Allocate memory for uncompressed data
-    unzipdata = (uint8*)malloc(65536);
-    if (!unzipdata) {
-        printf("Error: Failed to allocate memory for uncompressed data.\n");
-        free(data);
-        return -1;
-    }
-    unzipsize = 65536;
+	// Step 7: Uncompress data
+	if (uncompress(unzipdata, &unzipsize, (uint8 *)pkg.data, pkg.data_len) != Z_OK)
+	{
+		printf("Error: Failed to uncompress VMU data.\n");
+		free(data);
+		free(unzipdata);
+		return -1;
+	}
+	printf("Uncompressed data successfully. Uncompressed size: %lu bytes.\n", unzipsize);
 
-    // Step 7: Uncompress data
-    if (uncompress(unzipdata, &unzipsize, (uint8*)pkg.data, pkg.data_len) != Z_OK) {
-        printf("Error: Failed to uncompress VMU data.\n");
-        free(data);
-        free(unzipdata);
-        return -1;
-    }
-    printf("Uncompressed data successfully. Uncompressed size: %lu bytes.\n", unzipsize);
+	// Step 8: Write uncompressed data back to the save file
+	file = fs_open("/vmu/a1/SDLPOP.SAV", O_WRONLY);
+	if (file <= 0)
+	{
+		printf("Error: Failed to open VMU save file for writing.\n");
+		free(data);
+		free(unzipdata);
+		return -1;
+	}
+	if (fs_write(file, unzipdata, unzipsize) != unzipsize)
+	{
+		printf("Error: Failed to write uncompressed data to save file.\n");
+		free(data);
+		free(unzipdata);
+		fs_close(file);
+		return -1;
+	}
+	printf("Wrote uncompressed data back to save file successfully.\n");
+	fs_close(file);
 
-    // Step 8: Write uncompressed data back to the save file
-    file = fs_open("/vmu/a1/SDLPOP.SAV", O_WRONLY);
-    if (file <= 0) {
-        printf("Error: Failed to open VMU save file for writing.\n");
-        free(data);
-        free(unzipdata);
-        return -1;
-    }
-    if (fs_write(file, unzipdata, unzipsize) != unzipsize) {
-        printf("Error: Failed to write uncompressed data to save file.\n");
-        free(data);
-        free(unzipdata);
-        fs_close(file);
-        return -1;
-    }
-    printf("Wrote uncompressed data back to save file successfully.\n");
-    fs_close(file);
+	// Step 9: Free allocated memory
+	free(data);
+	free(unzipdata);
+	printf("Freed allocated memory.\n");
 
-    // Step 9: Free allocated memory
-    free(data);
-    free(unzipdata);
-    printf("Freed allocated memory.\n");
+	printf("VMU save processing completed successfully.\n");
+	//
+	int ok = 0;
+	char custom_quick_path[POP_MAX_PATH];
+	const char *path = get_quick_path(custom_quick_path, sizeof(custom_quick_path));
 
-    printf("VMU save processing completed successfully.\n");
-//
-    int ok = 0;
-    char custom_quick_path[POP_MAX_PATH];
-    const char* path = get_quick_path(custom_quick_path, sizeof(custom_quick_path));
-    
-    printf("quick_load: Attempting to load quicksave from %s\n", path);
+	printf("quick_load: Attempting to load quicksave from %s\n", path);
 
-    // Attempt to open the quicksave file
-    quick_fp = fs_open(path, O_RDONLY);
-    if (quick_fp != NULL) {
-        printf("quicksave file opened successfully.\n");
+	// Attempt to open the quicksave file
+	quick_fp = fs_open(path, O_RDONLY);
+	if (quick_fp != NULL)
+	{
+		printf("quicksave file opened successfully.\n");
 
-        // Step 1: Check quicksave version compatibility
-        printf("Checking quicksave version compatibility...\n");
-        process_load(quick_control, COUNT(quick_control));
-        if (strcmp(quick_control, quick_version) != 0) {
-            printf("Incompatible quicksave version: %s (expected: %s)\n", quick_control, quick_version);
-            fs_close(quick_fp);
-            quick_fp = NULL;
-            return 0;
-        }
-        printf("Quicksave version is compatible.\n");
+		// Step 1: Check quicksave version compatibility
+		printf("Checking quicksave version compatibility...\n");
+		process_load(quick_control, COUNT(quick_control));
+		if (strcmp(quick_control, quick_version) != 0)
+		{
+			printf("Incompatible quicksave version: %s (expected: %s)\n", quick_control, quick_version);
+			fs_close(quick_fp);
+			quick_fp = NULL;
+			return 0;
+		}
+		printf("Quicksave version is compatible.\n");
 
-        // Step 2: Perform pre-load operations
-        printf("Stopping sounds and preparing the screen...\n");
-        stop_sounds();
-        draw_rect(&screen_rect, color_0_black);
-        update_screen();
-        delay_ticks(5); // Briefly display a black screen
+		// Step 2: Perform pre-load operations
+		printf("Stopping sounds and preparing the screen...\n");
+		stop_sounds();
+		draw_rect(&screen_rect, color_0_black);
+		update_screen();
+		delay_ticks(5); // Briefly display a black screen
 
-        // Backup remaining time
-        short old_rem_min = rem_min;
-        word old_rem_tick = rem_tick;
+		// Backup remaining time
+		short old_rem_min = rem_min;
+		word old_rem_tick = rem_tick;
 
-        // Step 3: Process quicksave data
-        printf("Processing quicksave data...\n");
-        ok = quick_process(process_load);
+		// Step 3: Process quicksave data
+		printf("Processing quicksave data...\n");
+		ok = quick_process(process_load);
 
-        // Step 4: Close quicksave file
-        fs_close(quick_fp);
-        quick_fp = NULL;
-        printf("Quicksave file closed.\n");
+		// Step 4: Close quicksave file
+		fs_close(quick_fp);
+		quick_fp = NULL;
+		printf("Quicksave file closed.\n");
 
-        // Step 5: Delete the uncompressed quicksave file
-       if (fs_unlink("/vmu/a1/SDLPOP.SAV") == 0) {
-            printf("Temporary uncompressed quicksave file deleted successfully.\n");
-        } else {
-            printf("Warning: Failed to delete temporary uncompressed quicksave file.\n");
-        }
+		// Step 5: Delete the uncompressed quicksave file
+		if (fs_unlink("/vmu/a1/SDLPOP.SAV") == 0)
+		{
+			printf("Temporary uncompressed quicksave file deleted successfully.\n");
+		}
+		else
+		{
+			printf("Warning: Failed to delete temporary uncompressed quicksave file.\n");
+		}
 
-        // Step 6: Restore the room state
-        printf("Restoring room state after quickload...\n");
-        restore_room_after_quick_load();
-        update_screen();
+		// Step 6: Restore the room state
+		printf("Restoring room state after quickload...\n");
+		restore_room_after_quick_load();
+		update_screen();
 
-        #ifdef USE_QUICKLOAD_PENALTY
-        // Step 7: Apply quickload penalty (if enabled)
-        printf("Checking and applying quickload penalty...\n");
-        if (enable_quicksave_penalty &&
-            (current_level < custom->victory_stops_time_level || 
-            (current_level == custom->victory_stops_time_level && leveldoor_open < 2))) {
+#ifdef USE_QUICKLOAD_PENALTY
+		// Step 7: Apply quickload penalty (if enabled)
+		printf("Checking and applying quickload penalty...\n");
+		if (enable_quicksave_penalty &&
+			(current_level < custom->victory_stops_time_level ||
+			 (current_level == custom->victory_stops_time_level && leveldoor_open < 2)))
+		{
 
-            int ticks_elapsed = 720 * (rem_min - old_rem_min) + (rem_tick - old_rem_tick);
-            if (ticks_elapsed > 0 && ticks_elapsed < 720) {
-                printf("Elapsed time is less than 1 minute, restoring previous time.\n");
-                rem_min = old_rem_min;
-                rem_tick = old_rem_tick;
-            } else {
-                if (rem_min == 6) rem_tick = 719;
-                if (rem_min > 5 || rem_min < 0) {
-                    --rem_min;
-                    printf("Quickload penalty applied: remaining time decremented by 1 minute.\n");
-                }
-            }
-        } else {
-            printf("Quickload penalty not applicable.\n");
-        }
-        #endif
-    } else {
-        // Handle file open failure
-        perror("quick_load: fs_open");
-        printf("Error: Failed to open quicksave file for reading: %s\n", path);
-    }
+			int ticks_elapsed = 720 * (rem_min - old_rem_min) + (rem_tick - old_rem_tick);
+			if (ticks_elapsed > 0 && ticks_elapsed < 720)
+			{
+				printf("Elapsed time is less than 1 minute, restoring previous time.\n");
+				rem_min = old_rem_min;
+				rem_tick = old_rem_tick;
+			}
+			else
+			{
+				if (rem_min == 6)
+					rem_tick = 719;
+				if (rem_min > 5 || rem_min < 0)
+				{
+					--rem_min;
+					printf("Quickload penalty applied: remaining time decremented by 1 minute.\n");
+				}
+			}
+		}
+		else
+		{
+			printf("Quickload penalty not applicable.\n");
+		}
+#endif
+	}
+	else
+	{
+		// Handle file open failure
+		perror("quick_load: fs_open");
+		printf("Error: Failed to open quicksave file for reading: %s\n", path);
+	}
 
-    // Return the success flag
-    printf("quick_load: Completed with status %d.\n", ok);
-	//delay_ticks(15); // Briefly display a black screen
-    return ok;
+	// Return the success flag
+	printf("quick_load: Completed with status %d.\n", ok);
+	// delay_ticks(15); // Briefly display a black screen
+	return ok;
 }
 
-void check_quick_op() {
-	if (!enable_quicksave) return;
-	//printf("need_quick_save: %d\n", need_quick_save);
-	if (need_quick_save) {
-		if ((!is_feather_fall || fixes->fix_quicksave_during_feather) && quick_save()) {
+void check_quick_op()
+{
+	if (!enable_quicksave)
+		return;
+	// printf("need_quick_save: %d\n", need_quick_save);
+	if (need_quick_save)
+	{
+		if ((!is_feather_fall || fixes->fix_quicksave_during_feather) && quick_save())
+		{
 			display_text_bottom("QUICKSAVE");
-		} else {
+		}
+		else
+		{
 			display_text_bottom("NO QUICKSAVE");
 		}
 		need_quick_save = 0;
 		text_time_total = 24;
 		text_time_remaining = 24;
 	}
-	if (need_quick_load) {
-/*
-#ifdef USE_REPLAY
-		if (recording) {
-			stop_recording(); // quickloading would mess up the replay!
-		}
-#endif
-*/
-		if (quick_load()) {
+	if (need_quick_load)
+	{
+		/*
+		#ifdef USE_REPLAY
+				if (recording) {
+					stop_recording(); // quickloading would mess up the replay!
+				}
+		#endif
+		*/
+		if (quick_load())
+		{
 			display_text_bottom("QUICKLOAD");
-		} else {
+		}
+		else
+		{
 			display_text_bottom("NO QUICKLOAD");
 		}
 		need_quick_load = 0;
@@ -740,52 +810,68 @@ void check_quick_op() {
 	}
 }
 
-
 #endif // USE_QUICKSAVE
 
-Uint32 temp_shift_release_callback(Uint32 interval, void *param) {
-	const Uint8* state = SDL_GetKeyboardState(NULL);
-	if (state[SDL_SCANCODE_LSHIFT]) key_states[SDL_SCANCODE_LSHIFT] |= KEYSTATE_HELD | KEYSTATE_HELD_NEW;
-	if (state[SDL_SCANCODE_RSHIFT]) key_states[SDL_SCANCODE_RSHIFT] |= KEYSTATE_HELD | KEYSTATE_HELD_NEW;
+Uint32 temp_shift_release_callback(Uint32 interval, void *param)
+{
+	const Uint8 *state = SDL_GetKeyboardState(NULL);
+	if (state[SDL_SCANCODE_LSHIFT])
+		key_states[SDL_SCANCODE_LSHIFT] |= KEYSTATE_HELD | KEYSTATE_HELD_NEW;
+	if (state[SDL_SCANCODE_RSHIFT])
+		key_states[SDL_SCANCODE_RSHIFT] |= KEYSTATE_HELD | KEYSTATE_HELD_NEW;
 	return 0; // causes the timer to be removed
 }
 
 // seg000:04CD
-int process_key() {
+int process_key()
+{
 	char sprintf_temp[80];
-	const char* answer_text = NULL;
+	const char *answer_text = NULL;
 	word need_show_text = 0;
 	int key = key_test_quit();
 
 #ifdef USE_MENU
-	if (is_paused && is_menu_shown) {
+	if (is_paused && is_menu_shown)
+	{
 		key = key_test_paused_menu(key);
-		if (key == 0) return 0;
+		if (key == 0)
+			return 0;
 	}
 #endif
 
-	if (start_level < 0) {
-		if (key || control_shift) {
-			#ifdef USE_QUICKSAVE
-			if (key == SDL_SCANCODE_F9) need_quick_load = 1;
-			#endif
-			#ifdef USE_REPLAY
-			if (key == SDL_SCANCODE_TAB || need_start_replay) {
+	if (start_level < 0)
+	{
+		if (key || control_shift)
+		{
+#ifdef USE_QUICKSAVE
+			if (key == SDL_SCANCODE_F9)
+				need_quick_load = 1;
+#endif
+#ifdef USE_REPLAY
+			if (key == SDL_SCANCODE_TAB || need_start_replay)
+			{
 				start_replay();
 			}
-			else if (key == (SDL_SCANCODE_TAB | WITH_CTRL)) {
+			else if (key == (SDL_SCANCODE_TAB | WITH_CTRL))
+			{
 				start_level = custom->first_level;
 				start_recording();
-			} else
-			#endif
-			if (key == (SDL_SCANCODE_L | WITH_CTRL)) { // Ctrl+L
-				if (!load_game()) return 0;
-			} else {
+			}
+			else
+#endif
+				if (key == (SDL_SCANCODE_L | WITH_CTRL))
+			{ // Ctrl+L
+				if (!load_game())
+					return 0;
+			}
+			else
+			{
 				start_level = custom->first_level; // 1
 			}
 			draw_rect(&screen_rect, color_0_black);
 #ifdef USE_FADE
-			if (is_global_fading) {
+			if (is_global_fading)
+			{
 				fade_palette_buffer->proc_restore_free(fade_palette_buffer);
 				is_global_fading = 0;
 			}
@@ -794,272 +880,321 @@ int process_key() {
 		}
 	}
 	// If the Kid died, Enter or Shift will restart the level.
-	if (rem_min != 0 && Kid.alive > 6 && (control_shift || key == SDL_SCANCODE_RETURN)) {
+	if (rem_min != 0 && Kid.alive > 6 && (control_shift || key == SDL_SCANCODE_RETURN))
+	{
 		key = SDL_SCANCODE_A | WITH_CTRL; // Ctrl+A
 	}
 #ifdef USE_REPLAY
-	if (recording) key_press_while_recording(&key);
-	else if (replaying) key_press_while_replaying(&key);
+	if (recording)
+		key_press_while_recording(&key);
+	else if (replaying)
+		key_press_while_replaying(&key);
 #endif
-	if (key == 0) return 0;
-	if (is_keyboard_mode) clear_kbd_buf();
+	if (key == 0)
+		return 0;
+	if (is_keyboard_mode)
+		clear_kbd_buf();
 
-	switch(key) {
-		case SDL_SCANCODE_ESCAPE: // Esc
-		case SDL_SCANCODE_ESCAPE | WITH_SHIFT: // allow pause while grabbing
-			is_paused = 1;
+	switch (key)
+	{
+	case SDL_SCANCODE_ESCAPE:			   // Esc
+	case SDL_SCANCODE_ESCAPE | WITH_SHIFT: // allow pause while grabbing
+		is_paused = 1;
 #ifdef USE_MENU
-			if (enable_pause_menu && !is_cutscene && !is_ending_sequence) {
-				is_menu_shown = 1;
-			}
-		break;
-		case SDL_SCANCODE_BACKSPACE:
-			if (!is_cutscene && !is_ending_sequence) {
-				is_paused = 1;
-				is_menu_shown = 1;
-			}
-#endif
-		break;
-		case SDL_SCANCODE_SPACE: // Space
-			is_show_time = 1;
-		break;
-		case SDL_SCANCODE_A | WITH_CTRL: // Ctrl+A
-			if (current_level != 15) {
-				stop_sounds();
-				is_restart_level = 1;
-			}
-		break;
-		case SDL_SCANCODE_G | WITH_CTRL: // Ctrl+G
-			// CusPoP: first and last level where saving is allowed
-//			if (current_level > 2 && current_level < 14) { // original
-			if (current_level >= custom->saving_allowed_first_level && current_level <= custom->saving_allowed_last_level) {
-				save_game();
-			}
-		break;
-		case SDL_SCANCODE_J | WITH_CTRL: // Ctrl+J
-			if ((sound_flags & sfDigi) && sound_mode == smTandy) {
-				answer_text = "JOYSTICK UNAVAILABLE";
-			} else {
-				if (set_joy_mode()) {
-					answer_text = "JOYSTICK MODE";
-				} else {
-					answer_text = "JOYSTICK NOT FOUND";
-				}
-			}
-			need_show_text = 1;
-		break;
-		case SDL_SCANCODE_K | WITH_CTRL: // Ctrl+K
-			answer_text = "KEYBOARD MODE";
-			is_joyst_mode = 0;
-			is_keyboard_mode = 1;
-			need_show_text = 1;
-		break;
-		case SDL_SCANCODE_R | WITH_CTRL: // Ctrl+R
-			start_level = -1;
-#ifdef USE_MENU
-			if (is_menu_shown) menu_was_closed(); // Do necessary cleanup.
-#endif
-			start_game();
-		break;
-		case SDL_SCANCODE_S | WITH_CTRL: // Ctrl+S
-			turn_sound_on_off((!is_sound_on) * 15);
-			answer_text = "SOUND OFF";
-			if (is_sound_on) {
-				answer_text = "SOUND ON";
-			}
-			//
-			need_show_text = 1;
-		break;
-		case SDL_SCANCODE_V | WITH_CTRL: // Ctrl+V
-			//answer_text = "PRINCE OF PERSIA  V1.0";
-			snprintf(sprintf_temp, sizeof(sprintf_temp), "SDLPoP v%s\n", SDLPOP_VERSION);
-			answer_text = sprintf_temp;
-			need_show_text = 1;
-		break;
-		case SDL_SCANCODE_C | WITH_CTRL: // Ctrl+C
+		if (enable_pause_menu && !is_cutscene && !is_ending_sequence)
 		{
-			SDL_version verc, verl;
-			SDL_VERSION (&verc);
-			SDL_GetVersion (&verl);
-			snprintf (sprintf_temp, sizeof (sprintf_temp),
-				"SDL COMP v%u.%u.%u LINK v%u.%u.%u",
-				verc.major, verc.minor, verc.patch,
-				verl.major, verl.minor, verl.patch);
-			answer_text = sprintf_temp;
-			need_show_text = 1;
+			is_menu_shown = 1;
 		}
 		break;
-		case SDL_SCANCODE_L | WITH_SHIFT: // Shift+L
-			if (current_level < custom->shift_L_allowed_until_level /* 4 */ || cheats_enabled) {
-				// if Shift is not released within the delay, the cutscene is skipped
-				Uint32 delay = 250;
-				key_states[SDL_SCANCODE_LSHIFT] = 0;
-				key_states[SDL_SCANCODE_RSHIFT] = 0;
-				SDL_TimerID timer;
-				timer = SDL_AddTimer(delay, temp_shift_release_callback, NULL);
-				if (timer == 0) {
-					sdlperror("process_key: SDL_AddTimer");
-					quit(1);
-				}
-				if (current_level == 14) {
-					next_level = 1;
-				} else {
-					if (current_level == 15 && cheats_enabled) {
-#ifdef USE_COPYPROT
-						if (enable_copyprot) {
-							next_level = custom->copyprot_level;
-							custom->copyprot_level = -1;
-						}
+	case SDL_SCANCODE_BACKSPACE:
+		if (!is_cutscene && !is_ending_sequence)
+		{
+			is_paused = 1;
+			is_menu_shown = 1;
+		}
 #endif
-					} else {
-						next_level = current_level + 1;
-						if (!cheats_enabled && rem_min > custom->shift_L_reduced_minutes /* 15 */) {
-							rem_min = custom->shift_L_reduced_minutes; // 15
-							rem_tick = custom->shift_L_reduced_ticks; // 719
-						}
+		break;
+	case SDL_SCANCODE_SPACE: // Space
+		is_show_time = 1;
+		break;
+	case SDL_SCANCODE_A | WITH_CTRL: // Ctrl+A
+		if (current_level != 15)
+		{
+			stop_sounds();
+			is_restart_level = 1;
+		}
+		break;
+	case SDL_SCANCODE_G | WITH_CTRL: // Ctrl+G
+		// CusPoP: first and last level where saving is allowed
+		//			if (current_level > 2 && current_level < 14) { // original
+		if (current_level >= custom->saving_allowed_first_level && current_level <= custom->saving_allowed_last_level)
+		{
+			save_game();
+		}
+		break;
+	case SDL_SCANCODE_J | WITH_CTRL: // Ctrl+J
+		if ((sound_flags & sfDigi) && sound_mode == smTandy)
+		{
+			answer_text = "JOYSTICK UNAVAILABLE";
+		}
+		else
+		{
+			if (set_joy_mode())
+			{
+				answer_text = "JOYSTICK MODE";
+			}
+			else
+			{
+				answer_text = "JOYSTICK NOT FOUND";
+			}
+		}
+		need_show_text = 1;
+		break;
+	case SDL_SCANCODE_K | WITH_CTRL: // Ctrl+K
+		answer_text = "KEYBOARD MODE";
+		is_joyst_mode = 0;
+		is_keyboard_mode = 1;
+		need_show_text = 1;
+		break;
+	case SDL_SCANCODE_R | WITH_CTRL: // Ctrl+R
+		start_level = -1;
+#ifdef USE_MENU
+		if (is_menu_shown)
+			menu_was_closed(); // Do necessary cleanup.
+#endif
+		start_game();
+		break;
+	case SDL_SCANCODE_S | WITH_CTRL: // Ctrl+S
+		turn_sound_on_off((!is_sound_on) * 15);
+		answer_text = "SOUND OFF";
+		if (is_sound_on)
+		{
+			answer_text = "SOUND ON";
+		}
+		//
+		need_show_text = 1;
+		break;
+	case SDL_SCANCODE_V | WITH_CTRL: // Ctrl+V
+		// answer_text = "PRINCE OF PERSIA  V1.0";
+		snprintf(sprintf_temp, sizeof(sprintf_temp), "SDLPoP v%s\n", SDLPOP_VERSION);
+		answer_text = sprintf_temp;
+		need_show_text = 1;
+		break;
+	case SDL_SCANCODE_C | WITH_CTRL: // Ctrl+C
+	{
+		SDL_version verc, verl;
+		SDL_VERSION(&verc);
+		SDL_GetVersion(&verl);
+		snprintf(sprintf_temp, sizeof(sprintf_temp),
+				 "SDL COMP v%u.%u.%u LINK v%u.%u.%u",
+				 verc.major, verc.minor, verc.patch,
+				 verl.major, verl.minor, verl.patch);
+		answer_text = sprintf_temp;
+		need_show_text = 1;
+	}
+	break;
+	case SDL_SCANCODE_L | WITH_SHIFT: // Shift+L
+		if (current_level < custom->shift_L_allowed_until_level /* 4 */ || cheats_enabled)
+		{
+			// if Shift is not released within the delay, the cutscene is skipped
+			Uint32 delay = 250;
+			key_states[SDL_SCANCODE_LSHIFT] = 0;
+			key_states[SDL_SCANCODE_RSHIFT] = 0;
+			SDL_TimerID timer;
+			timer = SDL_AddTimer(delay, temp_shift_release_callback, NULL);
+			if (timer == 0)
+			{
+				sdlperror("process_key: SDL_AddTimer");
+				quit(1);
+			}
+			if (current_level == 14)
+			{
+				next_level = 1;
+			}
+			else
+			{
+				if (current_level == 15 && cheats_enabled)
+				{
+#ifdef USE_COPYPROT
+					if (enable_copyprot)
+					{
+						next_level = custom->copyprot_level;
+						custom->copyprot_level = -1;
+					}
+#endif
+				}
+				else
+				{
+					next_level = current_level + 1;
+					if (!cheats_enabled && rem_min > custom->shift_L_reduced_minutes /* 15 */)
+					{
+						rem_min = custom->shift_L_reduced_minutes; // 15
+						rem_tick = custom->shift_L_reduced_ticks;  // 719
 					}
 				}
-				stop_sounds();
 			}
+			stop_sounds();
+		}
 		break;
 #ifdef USE_QUICKSAVE
-		case SDL_SCANCODE_F6:
-		case SDL_SCANCODE_F6 | WITH_SHIFT:
-			if (Kid.alive < 0) need_quick_save = 1;
+	case SDL_SCANCODE_F6:
+	case SDL_SCANCODE_F6 | WITH_SHIFT:
+		if (Kid.alive < 0)
+			need_quick_save = 1;
 		break;
-		case SDL_SCANCODE_F9:
-		case SDL_SCANCODE_F9 | WITH_SHIFT:
-			need_quick_load = 1;
+	case SDL_SCANCODE_F9:
+	case SDL_SCANCODE_F9 | WITH_SHIFT:
+		need_quick_load = 1;
 		break;
 #ifdef USE_REPLAY
-		case SDL_SCANCODE_TAB | WITH_CTRL:
-		case SDL_SCANCODE_TAB | WITH_CTRL | WITH_SHIFT:
-			if (recording) { // finished recording
-				stop_recording();
-			}
-			else { // should start recording
-				start_recording();
-			}
+	case SDL_SCANCODE_TAB | WITH_CTRL:
+	case SDL_SCANCODE_TAB | WITH_CTRL | WITH_SHIFT:
+		if (recording)
+		{ // finished recording
+			stop_recording();
+		}
+		else
+		{ // should start recording
+			start_recording();
+		}
 		break;
 #endif // USE_REPLAY
 #endif // USE_QUICKSAVE
 	}
-	if (cheats_enabled) {
-		switch (key) {
-			case SDL_SCANCODE_C: // c
-				snprintf(sprintf_temp, sizeof(sprintf_temp), "S%d L%d R%d A%d B%d", drawn_room, room_L, room_R, room_A, room_B);
-				answer_text = /*&*/sprintf_temp;
-				need_show_text = 1;
+	if (cheats_enabled)
+	{
+		switch (key)
+		{
+		case SDL_SCANCODE_C: // c
+			snprintf(sprintf_temp, sizeof(sprintf_temp), "S%d L%d R%d A%d B%d", drawn_room, room_L, room_R, room_A, room_B);
+			answer_text = /*&*/ sprintf_temp;
+			need_show_text = 1;
 			break;
-			case SDL_SCANCODE_C | WITH_SHIFT: // Shift+C
-				snprintf(sprintf_temp, sizeof(sprintf_temp), "AL%d AR%d BL%d BR%d", room_AL, room_AR, room_BL, room_BR);
-				answer_text = /*&*/sprintf_temp;
-				need_show_text = 1;
+		case SDL_SCANCODE_C | WITH_SHIFT: // Shift+C
+			snprintf(sprintf_temp, sizeof(sprintf_temp), "AL%d AR%d BL%d BR%d", room_AL, room_AR, room_BL, room_BR);
+			answer_text = /*&*/ sprintf_temp;
+			need_show_text = 1;
 			break;
-			case SDL_SCANCODE_KP_MINUS: // '-' --> subtract time cheat
-				if (rem_min > 1) --rem_min;
+		case SDL_SCANCODE_KP_MINUS: // '-' --> subtract time cheat
+			if (rem_min > 1)
+				--rem_min;
 
 #ifdef ALLOW_INFINITE_TIME
-				else if (rem_min < -1) ++rem_min; // if negative/infinite, time runs 'forward'
-				else if (rem_min == -1) rem_tick = 720; // resets the timer to 00:00:00
+			else if (rem_min < -1)
+				++rem_min; // if negative/infinite, time runs 'forward'
+			else if (rem_min == -1)
+				rem_tick = 720; // resets the timer to 00:00:00
 #endif
 
-				text_time_total = 0;
-				text_time_remaining = 0;
-				is_show_time = 1;
+			text_time_total = 0;
+			text_time_remaining = 0;
+			is_show_time = 1;
 			break;
-			case SDL_SCANCODE_KP_PLUS: // '+' --> add time cheat
+		case SDL_SCANCODE_KP_PLUS: // '+' --> add time cheat
 
 #ifdef ALLOW_INFINITE_TIME
-				if (rem_min < 0) { // if negative/infinite, time runs 'forward'
-					if (rem_min > INT16_MIN) --rem_min;
-				}
-				else ++rem_min;
-#else
+			if (rem_min < 0)
+			{ // if negative/infinite, time runs 'forward'
+				if (rem_min > INT16_MIN)
+					--rem_min;
+			}
+			else
 				++rem_min;
+#else
+			++rem_min;
 #endif
 
-				text_time_total = 0;
-				text_time_remaining = 0;
-				is_show_time = 1;
+			text_time_total = 0;
+			text_time_remaining = 0;
+			is_show_time = 1;
 			break;
-			case SDL_SCANCODE_R: // R --> revive kid cheat
-				if (Kid.alive > 0) {
-					resurrect_time = 20;
-					Kid.alive = -1;
-					erase_bottom_text(1);
-				}
+		case SDL_SCANCODE_R: // R --> revive kid cheat
+			if (Kid.alive > 0)
+			{
+				resurrect_time = 20;
+				Kid.alive = -1;
+				erase_bottom_text(1);
+			}
 			break;
-			case SDL_SCANCODE_K: // K --> kill guard cheat
-				if (Guard.charid != charid_4_skeleton) {
-					guardhp_delta = -guardhp_curr;
-					Guard.alive = 0;
-				}
+		case SDL_SCANCODE_K: // K --> kill guard cheat
+			if (Guard.charid != charid_4_skeleton)
+			{
+				guardhp_delta = -guardhp_curr;
+				Guard.alive = 0;
+			}
 			break;
-			case SDL_SCANCODE_I | WITH_SHIFT: // Shift+I --> invert cheat
-				toggle_upside();
+		case SDL_SCANCODE_I | WITH_SHIFT: // Shift+I --> invert cheat
+			toggle_upside();
 			break;
-			case SDL_SCANCODE_W | WITH_SHIFT: // Shift+W --> feather fall cheat
-				feather_fall();
+		case SDL_SCANCODE_W | WITH_SHIFT: // Shift+W --> feather fall cheat
+			feather_fall();
 			break;
-			case SDL_SCANCODE_H: // H --> view room to the left
-				draw_guard_hp(0, 10);
-				next_room = room_L;
+		case SDL_SCANCODE_H: // H --> view room to the left
+			draw_guard_hp(0, 10);
+			next_room = room_L;
 			break;
-			case SDL_SCANCODE_J: // J --> view room to the right
-				draw_guard_hp(0, 10);
-				next_room = room_R;
+		case SDL_SCANCODE_J: // J --> view room to the right
+			draw_guard_hp(0, 10);
+			next_room = room_R;
 			break;
-			case SDL_SCANCODE_U: // U --> view room above
-				draw_guard_hp(0, 10);
-				next_room = room_A;
+		case SDL_SCANCODE_U: // U --> view room above
+			draw_guard_hp(0, 10);
+			next_room = room_A;
 			break;
-			case SDL_SCANCODE_N: // N --> view room below
-				draw_guard_hp(0, 10);
-				next_room = room_B;
+		case SDL_SCANCODE_N: // N --> view room below
+			draw_guard_hp(0, 10);
+			next_room = room_B;
 			break;
-			case SDL_SCANCODE_B | WITH_CTRL: // Ctrl+B --> Go back to the room where the prince is. (Undo H,J,U,N.)
-				draw_guard_hp(0, 10);
-				next_room = Kid.room;
+		case SDL_SCANCODE_B | WITH_CTRL: // Ctrl+B --> Go back to the room where the prince is. (Undo H,J,U,N.)
+			draw_guard_hp(0, 10);
+			next_room = Kid.room;
 			break;
-			case SDL_SCANCODE_B | WITH_SHIFT: // Shift+B
-				is_blind_mode = !is_blind_mode;
-				if (is_blind_mode) {
-					draw_rect(&rect_top, color_0_black);
-				} else {
-					need_full_redraw = 1;
-				}
+		case SDL_SCANCODE_B | WITH_SHIFT: // Shift+B
+			is_blind_mode = !is_blind_mode;
+			if (is_blind_mode)
+			{
+				draw_rect(&rect_top, color_0_black);
+			}
+			else
+			{
+				need_full_redraw = 1;
+			}
 			break;
-			case SDL_SCANCODE_S | WITH_SHIFT: // Shift+S
-				if (hitp_curr != hitp_max) {
-					play_sound(sound_33_small_potion); // small potion (cheat)
-					hitp_delta = 1;
-					flash_color = 4; // red
-					flash_time = 2;
-				}
-			break;
-			case SDL_SCANCODE_T | WITH_SHIFT: // Shift+T
-				play_sound(sound_30_big_potion); // big potion (cheat)
+		case SDL_SCANCODE_S | WITH_SHIFT: // Shift+S
+			if (hitp_curr != hitp_max)
+			{
+				play_sound(sound_33_small_potion); // small potion (cheat)
+				hitp_delta = 1;
 				flash_color = 4; // red
-				flash_time = 4;
-				add_life();
+				flash_time = 2;
+			}
 			break;
-			#ifdef USE_DEBUG_CHEATS
-			case SDL_SCANCODE_T:
-				is_timer_displayed = 1 - is_timer_displayed; // toggle
+		case SDL_SCANCODE_T | WITH_SHIFT:	 // Shift+T
+			play_sound(sound_30_big_potion); // big potion (cheat)
+			flash_color = 4;				 // red
+			flash_time = 4;
+			add_life();
 			break;
-			case SDL_SCANCODE_F:
-				if (fixes->fix_quicksave_during_feather) {
-					is_feather_timer_displayed = 1 - is_feather_timer_displayed; // toggle
-				} else {
-					is_feather_timer_displayed = 0;
-				}
+#ifdef USE_DEBUG_CHEATS
+		case SDL_SCANCODE_T:
+			is_timer_displayed = 1 - is_timer_displayed; // toggle
 			break;
-			#endif
+		case SDL_SCANCODE_F:
+			if (fixes->fix_quicksave_during_feather)
+			{
+				is_feather_timer_displayed = 1 - is_feather_timer_displayed; // toggle
+			}
+			else
+			{
+				is_feather_timer_displayed = 0;
+			}
+			break;
+#endif
 		}
 	}
 
-	if (need_show_text) {
+	if (need_show_text)
+	{
 		display_text_bottom(answer_text);
 		text_time_total = 24;
 		text_time_remaining = 24;
@@ -1068,9 +1203,11 @@ int process_key() {
 }
 
 // seg000:08EB
-void play_frame() {
+void play_frame()
+{
 	// play feather fall music if there is more than 1 second of feather fall left
-	if (fixes->fix_quicksave_during_feather && is_feather_fall >= 10 && !check_sound_playing()) {
+	if (fixes->fix_quicksave_during_feather && is_feather_fall >= 10 && !check_sound_playing())
+	{
 		play_sound(sound_39_low_weight);
 	}
 	do_mobs();
@@ -1078,9 +1215,11 @@ void play_frame() {
 	check_skel();
 	check_can_guard_see_kid();
 	// if level is restarted, return immediately
-	if (play_kid_frame()) return;
+	if (play_kid_frame())
+		return;
 	play_guard_frame();
-	if (0 == resurrect_time) {
+	if (0 == resurrect_time)
+	{
 		check_sword_hurting();
 		check_sword_hurt();
 	}
@@ -1089,68 +1228,92 @@ void play_frame() {
 	exit_room();
 	check_the_end();
 	check_guard_fallout();
-	if (current_level == 0) {
+	if (current_level == 0)
+	{
 		// Special event: level 0 running exit
-		if (Kid.room == /*24*/ custom->demo_end_room) {
+		if (Kid.room == /*24*/ custom->demo_end_room)
+		{
 			draw_rect(&screen_rect, color_0_black);
 			start_level = -1;
 			need_quotes = 1;
 			start_game();
 		}
-	} else if(current_level == /*6*/ custom->falling_exit_level) {
+	}
+	else if (current_level == /*6*/ custom->falling_exit_level)
+	{
 		// Special event: level 6 falling exit
-		if (roomleave_result == -2) {
+		if (roomleave_result == -2)
+		{
 			Kid.y = -1;
 			stop_sounds();
 			++next_level;
 		}
-	} else if(/*current_level == 12*/ custom->tbl_seamless_exit[current_level] >= 0) {
+	}
+	else if (/*current_level == 12*/ custom->tbl_seamless_exit[current_level] >= 0)
+	{
 		// Special event: level 12 running exit
-		if (Kid.room == /*23*/ custom->tbl_seamless_exit[current_level]) {
+		if (Kid.room == /*23*/ custom->tbl_seamless_exit[current_level])
+		{
 			++next_level;
-// Sounds must be stopped, because play_level_2() checks next_level only if there are no sounds playing.
+			// Sounds must be stopped, because play_level_2() checks next_level only if there are no sounds playing.
 			stop_sounds();
 			seamless = 1;
 		}
 	}
 	show_time();
 	// expiring doesn't count on Jaffar/princess level
-	if (current_level < 13 && rem_min == 0) {
+	if (current_level < 13 && rem_min == 0)
+	{
 		expired();
 	}
 }
 
 // seg000:09B6
-void draw_game_frame() {
-	if (need_full_redraw) {
+void draw_game_frame()
+{
+	if (need_full_redraw)
+	{
 		redraw_screen(0);
 		need_full_redraw = 0;
-	} else {
-		if (different_room) {
+	}
+	else
+	{
+		if (different_room)
+		{
 			drawn_room = next_room;
-			if (custom->tbl_level_type[current_level]) {
+			if (custom->tbl_level_type[current_level])
+			{
 				gen_palace_wall_colors();
 			}
 			redraw_screen(1);
-		} else {
-			if (need_redraw_because_flipped) {
+		}
+		else
+		{
+			if (need_redraw_because_flipped)
+			{
 				need_redraw_because_flipped = 0;
 				redraw_screen(0);
-			} else {
+			}
+			else
+			{
 				memset(&table_counts, 0, sizeof(table_counts));
 				draw_moving();
 				draw_tables();
-				if (is_blind_mode) {
+				if (is_blind_mode)
+				{
 					draw_rect(&rect_top, color_0_black);
 				}
-				if (upside_down) {
+				if (upside_down)
+				{
 					flip_screen(offscreen_surface);
 				}
-				while (drects_count) {
+				while (drects_count)
+				{
 					drects_count--;
 					copy_screen_rect(&drects[drects_count]);
 				}
-				if (upside_down) {
+				if (upside_down)
+				{
 					flip_screen(offscreen_surface);
 				}
 				drects_count = 0;
@@ -1160,9 +1323,11 @@ void draw_game_frame() {
 
 	play_next_sound();
 	// Note: texts are identified by their total time!
-	if (text_time_remaining == 1) {
+	if (text_time_remaining == 1)
+	{
 		// If the text's is about to expire:
-		if (text_time_total == 36 || text_time_total == 288) {
+		if (text_time_total == 36 || text_time_total == 288)
+		{
 			// 36: died on demo/potions level
 			// 288: press button to continue
 			// In this case, restart the game.
@@ -1170,27 +1335,39 @@ void draw_game_frame() {
 			need_quotes = 1;
 
 #ifdef USE_REPLAY
-			if (recording) stop_recording();
-			if (replaying) end_replay();
+			if (recording)
+				stop_recording();
+			if (replaying)
+				end_replay();
 #endif
 
 			start_game();
-		} else {
+		}
+		else
+		{
 			// Otherwise, just clear it.
 			erase_bottom_text(1);
 		}
-	} else {
-		if (text_time_remaining != 0 && text_time_total != 1188) {
+	}
+	else
+	{
+		if (text_time_remaining != 0 && text_time_total != 1188)
+		{
 			// 1188: potions level (page/line/word) -- this one does not disappear
 			--text_time_remaining;
-			if (text_time_total == 288 && text_time_remaining < 72) {
+			if (text_time_total == 288 && text_time_remaining < 72)
+			{
 				// 288: press button to continue
 				// Blink the message:
 				short blink_frame = text_time_remaining % 12;
-				if (blink_frame > 3) {
+				if (blink_frame > 3)
+				{
 					erase_bottom_text(0);
-				} else {
-					if (blink_frame == 3) {
+				}
+				else
+				{
+					if (blink_frame == 3)
+					{
 						display_text_bottom("Press Button to Continue");
 						play_sound_from_buffer(sound_pointers[sound_38_blink]); // press button blink
 					}
@@ -1201,109 +1378,131 @@ void draw_game_frame() {
 }
 
 // seg000:0B12
-void anim_tile_modif() {
-	for (word tilepos = 0; tilepos < 30; ++tilepos) {
-		switch (get_curr_tile(tilepos)) {
-			case tiles_10_potion:
-				start_anim_potion(drawn_room, tilepos);
+void anim_tile_modif()
+{
+	for (word tilepos = 0; tilepos < 30; ++tilepos)
+	{
+		switch (get_curr_tile(tilepos))
+		{
+		case tiles_10_potion:
+			start_anim_potion(drawn_room, tilepos);
 			break;
-			case tiles_19_torch:
-			case tiles_30_torch_with_debris:
-				start_anim_torch(drawn_room, tilepos);
+		case tiles_19_torch:
+		case tiles_30_torch_with_debris:
+			start_anim_torch(drawn_room, tilepos);
 			break;
-			case tiles_22_sword:
-				start_anim_sword(drawn_room, tilepos);
+		case tiles_22_sword:
+			start_anim_sword(drawn_room, tilepos);
 			break;
 		}
 	}
 
 	// Animate torches in the rightmost column of the left-side room as well, because they are visible in the current room.
-	for (int row = 0; row <= 2; row++) {
-		switch (get_tile(room_L, 9, row)) {
-			case tiles_19_torch:
-			case tiles_30_torch_with_debris:
-				start_anim_torch(room_L, row * 10 + 9);
+	for (int row = 0; row <= 2; row++)
+	{
+		switch (get_tile(room_L, 9, row))
+		{
+		case tiles_19_torch:
+		case tiles_30_torch_with_debris:
+			start_anim_torch(room_L, row * 10 + 9);
 			break;
 		}
 	}
 }
 
 // seg000:0B72
-void load_sounds(int first,int last) {
-	dat_type* ibm_dat = NULL;
-	dat_type* digi1_dat = NULL;
-//	dat_type* digi2_dat = NULL;
-	dat_type* digi3_dat = NULL;
-	dat_type* midi_dat = NULL;
+void load_sounds(int first, int last)
+{
+	dat_type *ibm_dat = NULL;
+	dat_type *digi1_dat = NULL;
+	//	dat_type* digi2_dat = NULL;
+	dat_type *digi3_dat = NULL;
+	dat_type *midi_dat = NULL;
 	ibm_dat = open_dat("IBM_SND1.DAT", 0);
-	if (sound_flags & sfDigi) {
+	if (sound_flags & sfDigi)
+	{
 		digi1_dat = open_dat("DIGISND1.DAT", 0);
-//		digi2_dat = open_dat("DIGISND2.DAT", 0);
+		//		digi2_dat = open_dat("DIGISND2.DAT", 0);
 		digi3_dat = open_dat("DIGISND3.DAT", 0);
 	}
-	if (sound_flags & sfMidi) {
+	if (sound_flags & sfMidi)
+	{
 		midi_dat = open_dat("MIDISND1.DAT", 0);
 	}
 
 	load_sound_names();
 
-	for (short current = first; current <= last; ++current) {
-		if (sound_pointers[current] != NULL) continue;
+	for (short current = first; current <= last; ++current)
+	{
+		if (sound_pointers[current] != NULL)
+			continue;
 		/*if (demo_mode) {
 			sound_pointers[current] = decompress_sound((sound_buffer_type*) load_from_opendats_alloc(current + 10000));
-		} else*/ {
-			//sound_pointers[current] = (sound_buffer_type*) load_from_opendats_alloc(current + 10000, "bin", NULL, NULL);
-			//printf("overwriting sound_pointers[%d] = %p\n", current, sound_pointers[current]);
-
+		} else*/
+		{
+			// sound_pointers[current] = (sound_buffer_type*) load_from_opendats_alloc(current + 10000, "bin", NULL, NULL);
+			// printf("overwriting sound_pointers[%d] = %p\n", current, sound_pointers[current]);
 
 			sound_pointers[current] = load_sound(current);
 		}
 	}
-	if (midi_dat) close_dat(midi_dat);
-	if (digi1_dat) close_dat(digi1_dat);
-//	if (digi2_dat) close_dat(digi2_dat);
-	if (digi3_dat) close_dat(digi3_dat);
+	if (midi_dat)
+		close_dat(midi_dat);
+	if (digi1_dat)
+		close_dat(digi1_dat);
+	//	if (digi2_dat) close_dat(digi2_dat);
+	if (digi3_dat)
+		close_dat(digi3_dat);
 	close_dat(ibm_dat);
 }
 
 // seg000:0C5E
-void load_opt_sounds(int first,int last) {
+void load_opt_sounds(int first, int last)
+{
 	// stub
-	dat_type* ibm_dat = NULL;
-	dat_type* digi_dat = NULL;
-	dat_type* midi_dat = NULL;
+	dat_type *ibm_dat = NULL;
+	dat_type *digi_dat = NULL;
+	dat_type *midi_dat = NULL;
 	ibm_dat = open_dat("IBM_SND2.DAT", 0);
-	if (sound_flags & sfDigi) {
+	if (sound_flags & sfDigi)
+	{
 		digi_dat = open_dat("DIGISND2.DAT", 0);
 	}
-	if (sound_flags & sfMidi) {
+	if (sound_flags & sfMidi)
+	{
 		midi_dat = open_dat("MIDISND2.DAT", 0);
 	}
-	for (short current = first; current <= last; ++current) {
-		//We don't free sounds, so load only once.
-		if (sound_pointers[current] != NULL) continue;
+	for (short current = first; current <= last; ++current)
+	{
+		// We don't free sounds, so load only once.
+		if (sound_pointers[current] != NULL)
+			continue;
 		/*if (demo_mode) {
 			sound_pointers[current] = decompress_sound((sound_buffer_type*) load_from_opendats_alloc(current + 10000));
-		} else*/ {
-			//sound_pointers[current] = (sound_buffer_type*) load_from_opendats_alloc(current + 10000, "bin", NULL, NULL);
-			//printf("overwriting sound_pointers[%d] = %p\n", current, sound_pointers[current]);
+		} else*/
+		{
+			// sound_pointers[current] = (sound_buffer_type*) load_from_opendats_alloc(current + 10000, "bin", NULL, NULL);
+			// printf("overwriting sound_pointers[%d] = %p\n", current, sound_pointers[current]);
 			sound_pointers[current] = load_sound(current);
 		}
 	}
-	if (midi_dat) close_dat(midi_dat);
-	if (digi_dat) close_dat(digi_dat);
+	if (midi_dat)
+		close_dat(midi_dat);
+	if (digi_dat)
+		close_dat(digi_dat);
 	close_dat(ibm_dat);
 }
 
 // data:03BA
-const char*const tbl_guard_dat[] = {"GUARD.DAT", "FAT.DAT", "SKEL.DAT", "VIZIER.DAT", "SHADOW.DAT"};
+const char *const tbl_guard_dat[] = {"GUARD.DAT", "FAT.DAT", "SKEL.DAT", "VIZIER.DAT", "SHADOW.DAT"};
 // data:03C4
-const char*const tbl_envir_gr[] = {"", "C", "C", "E", "E", "V"};
+const char *const tbl_envir_gr[] = {"", "C", "C", "E", "E", "V"};
 // data:03D0
-const char*const tbl_envir_ki[] = {"DUNGEON", "PALACE"};
+const char *const tbl_envir_ki[] = {"DUNGEON", "PALACE"};
 // seg000:0D20
-void load_lev_spr(int level) {
-	dat_type* dathandle;
+void load_lev_spr(int level)
+{
+	dat_type *dathandle;
 	short guardtype;
 	char filename[20];
 	dathandle = NULL;
@@ -1311,32 +1510,36 @@ void load_lev_spr(int level) {
 	draw_rect(&screen_rect, color_0_black);
 	free_optsnd_chtab();
 	snprintf(filename, sizeof(filename), "%s%s.DAT",
-		tbl_envir_gr[graphics_mode],
-		tbl_envir_ki[custom->tbl_level_type[current_level]]
-	);
-	load_chtab_from_file(id_chtab_6_environment, 200, filename, 1<<5);
+			 tbl_envir_gr[graphics_mode],
+			 tbl_envir_ki[custom->tbl_level_type[current_level]]);
+	load_chtab_from_file(id_chtab_6_environment, 200, filename, 1 << 5);
 	load_more_opt_graf(filename);
 	guardtype = custom->tbl_guard_type[current_level];
-	if (guardtype != -1) {
-		if (guardtype == 0) {
+	if (guardtype != -1)
+	{
+		if (guardtype == 0)
+		{
 			dathandle = open_dat(custom->tbl_level_type[current_level] ? "GUARD1.DAT" : "GUARD2.DAT", 'G');
 		}
-		load_chtab_from_file(id_chtab_5_guard, 750, tbl_guard_dat[guardtype], 1<<8);
-		if (dathandle) {
+		load_chtab_from_file(id_chtab_5_guard, 750, tbl_guard_dat[guardtype], 1 << 8);
+		if (dathandle)
+		{
 			close_dat(dathandle);
 		}
 	}
 	curr_guard_color = 0;
-	load_chtab_from_file(id_chtab_7_environmentwall, 360, filename, 1<<6);
+	load_chtab_from_file(id_chtab_7_environmentwall, 360, filename, 1 << 6);
 
 	// Level colors (1.3)
-	if (graphics_mode == gmMcgaVga && level_var_palettes != NULL) {
+	if (graphics_mode == gmMcgaVga && level_var_palettes != NULL)
+	{
 		int level_color = custom->tbl_level_color[current_level];
-		if (level_color != 0) {
-			byte* env_pal = level_var_palettes + 0x30*(level_color-1);
-			byte* wall_pal = env_pal + 0x30 * custom->tbl_level_type[current_level];
-			set_pal_arr(0x50, 0x10, (rgb_type*)env_pal);
-			set_pal_arr(0x60, 0x10, (rgb_type*)wall_pal);
+		if (level_color != 0)
+		{
+			byte *env_pal = level_var_palettes + 0x30 * (level_color - 1);
+			byte *wall_pal = env_pal + 0x30 * custom->tbl_level_type[current_level];
+			set_pal_arr(0x50, 0x10, (rgb_type *)env_pal);
+			set_pal_arr(0x60, 0x10, (rgb_type *)wall_pal);
 			set_chtab_palette(chtab_addrs[id_chtab_6_environment], env_pal, 0x10);
 			set_chtab_palette(chtab_addrs[id_chtab_7_environmentwall], wall_pal, 0x10);
 		}
@@ -1357,8 +1560,9 @@ void load_lev_spr(int level) {
 }
 
 // seg000:0E6C
-void load_level() {
-	dat_type* dathandle = open_dat("LEVELS.DAT", 0);
+void load_level()
+{
+	dat_type *dathandle = open_dat("LEVELS.DAT", 0);
 	load_from_opendats_to_area(current_level + 2000, &level, sizeof(level), "bin");
 	close_dat(dathandle);
 
@@ -1366,7 +1570,8 @@ void load_level() {
 	reset_level_unused_fields(true); // added
 }
 
-void reset_level_unused_fields(bool loading_clean_level) {
+void reset_level_unused_fields(bool loading_clean_level)
+{
 	// Entirely unused fields in the level format: reset to zero for now
 	// They can be repurposed to add new stuff to the level format in the future
 	// WIP: https://www.popot.org/documentation/documents/multiplayer.txt
@@ -1377,39 +1582,46 @@ void reset_level_unused_fields(bool loading_clean_level) {
 	memset(level.fill_3, 0, sizeof(level.fill_3));
 
 	// level.used_rooms is 25 on some levels. Limit it to the actual number of rooms.
-	if (level.used_rooms > ROOMCOUNT) level.used_rooms = ROOMCOUNT;
+	if (level.used_rooms > ROOMCOUNT)
+		level.used_rooms = ROOMCOUNT;
 
 	// For these fields, only use the bits that are actually used, and set the rest to zero.
 	// Good for repurposing the unused bits in the future.
-	for (int i = 0; i < level.used_rooms; ++i) {
-		//level.guards_dir[i]   &= 0x01; // 1 bit in use
+	for (int i = 0; i < level.used_rooms; ++i)
+	{
+		// level.guards_dir[i]   &= 0x01; // 1 bit in use
 		level.guards_skill[i] &= 0x0F; // 4 bits in use
 	}
 
 	// In savestates, additional information may be stored (e.g. remembered guard hp) - should not reset this then!
-	if (loading_clean_level) {
-		for (int i = 0; i < level.used_rooms; ++i) {
+	if (loading_clean_level)
+	{
+		for (int i = 0; i < level.used_rooms; ++i)
+		{
 			level.guards_color[i] &= 0x0F; // 4 bits in use (other 4 bits repurposed as remembered guard hp)
 		}
 	}
-
 }
 
 // seg000:0EA8
 // returns 1 if level is restarted, 0 otherwise
-int play_kid_frame() {
+int play_kid_frame()
+{
 	loadkid_and_opp();
 	load_fram_det_col();
 	check_killed_shadow();
 	play_kid();
-	if (upside_down && Char.alive >= 0) {
+	if (upside_down && Char.alive >= 0)
+	{
 		upside_down = 0;
 		need_redraw_because_flipped = 1;
 	}
-	if (is_restart_level) {
+	if (is_restart_level)
+	{
 		return 1;
 	}
-	if (Char.room != 0) {
+	if (Char.room != 0)
+	{
 		play_seq();
 		fall_accel();
 		fall_speed();
@@ -1423,7 +1635,8 @@ int play_kid_frame() {
 		check_action();
 		check_press();
 		check_spike_below();
-		if (resurrect_time == 0) {
+		if (resurrect_time == 0)
+		{
 			check_spiked();
 			check_chomped_kid();
 		}
@@ -1434,15 +1647,19 @@ int play_kid_frame() {
 }
 
 // seg000:0F48
-void play_guard_frame() {
-	if (Guard.direction != dir_56_none) {
+void play_guard_frame()
+{
+	if (Guard.direction != dir_56_none)
+	{
 		loadshad_and_opp();
 		load_fram_det_col();
 		check_killed_shadow();
 		play_guard();
-		if (Char.room == drawn_room) {
+		if (Char.room == drawn_room)
+		{
 			play_seq();
-			if (Char.x >= 44 && Char.x < 211) {
+			if (Char.x >= 44 && Char.x < 211)
+			{
 				fall_accel();
 				fall_speed();
 				load_frame_to_obj();
@@ -1461,14 +1678,19 @@ void play_guard_frame() {
 }
 
 // seg000:0FBD
-void check_the_end() {
-	if (next_room != 0 && next_room != drawn_room) {
+void check_the_end()
+{
+	if (next_room != 0 && next_room != drawn_room)
+	{
 		drawn_room = next_room;
 		load_room_links();
-		if (current_level == /*14*/ custom->win_level && drawn_room == /*5*/ custom->win_room) {
+		if (current_level == /*14*/ custom->win_level && drawn_room == /*5*/ custom->win_room)
+		{
 #ifdef USE_REPLAY
-			if (recording) stop_recording();
-			if (replaying) end_replay();
+			if (recording)
+				stop_recording();
+			if (replaying)
+				end_replay();
 #endif
 			// Special event: end of game
 			end_sequence();
@@ -1483,67 +1705,75 @@ void check_the_end() {
 }
 
 // seg000:1009
-void check_fall_flo() {
+void check_fall_flo()
+{
 	// Special event: falling floors
 	if (current_level == /*13*/ custom->loose_tiles_level &&
-			(drawn_room == /*23*/ custom->loose_tiles_room_1 || drawn_room == /*16*/ custom->loose_tiles_room_2)
-	) {
+		(drawn_room == /*23*/ custom->loose_tiles_room_1 || drawn_room == /*16*/ custom->loose_tiles_room_2))
+	{
 		curr_room = room_A;
 		get_room_address(curr_room);
 		for (curr_tilepos = /*22*/ custom->loose_tiles_first_tile;
-		     curr_tilepos <= /*27*/ custom->loose_tiles_last_tile; ++curr_tilepos) {
+			 curr_tilepos <= /*27*/ custom->loose_tiles_last_tile; ++curr_tilepos)
+		{
 			make_loose_fall(-(prandom(0xFF) & 0x0F));
 		}
 	}
 }
 
-void get_joystick_state(int raw_x, int raw_y, int axis_state[2]) {
+void get_joystick_state(int raw_x, int raw_y, int axis_state[2])
+{
 
-#define DEGREES_TO_RADIANS (M_PI/180.0)
+#define DEGREES_TO_RADIANS (M_PI / 180.0)
 
 	// check if the X/Y position is within the 'dead zone' of the joystick
-	int dist_squared = raw_x*raw_x + raw_y*raw_y;
+	int dist_squared = raw_x * raw_x + raw_y * raw_y;
 	// FIXED: Left jump (top-left) didn't work on some gamepads.
 	// On some gamepads, raw_x = raw_y = -32768 in the top-left corner.
 	// In this case, dist_squared is calculated as -32768 * -32768 + -32768 * -32768 = 2147483648.
 	// But dist_squared is a 32-bit signed integer, which cannot store that number, so it overflows to -2147483648.
 	// Therefore, dist_squared < joystick_threshold*joystick_threshold becomes true, and the game thinks the stick is centered.
 	// To fix this, we cast both sides of the comparison to an unsigned 32-bit type.
-	if ((dword)dist_squared < (dword)(joystick_threshold*joystick_threshold)) {
+	if ((dword)dist_squared < (dword)(joystick_threshold * joystick_threshold))
+	{
 		axis_state[0] = 0;
 		axis_state[1] = 0;
-	} else {
+	}
+	else
+	{
 		double angle = atan2(raw_y, raw_x); // angle of the joystick: 0 = right, >0 = downward, <0 = upward
-		//printf("Joystick angle is %f degrees\n", angle/DEGREES_TO_RADIANS);
+		// printf("Joystick angle is %f degrees\n", angle/DEGREES_TO_RADIANS);
 
-		if (fabs(angle) < (60*DEGREES_TO_RADIANS)) // 120 degree range facing right
+		if (fabs(angle) < (60 * DEGREES_TO_RADIANS)) // 120 degree range facing right
 			axis_state[0] = 1;
 
-		else if (fabs(angle) > (120*DEGREES_TO_RADIANS)) // 120 degree range facing left
+		else if (fabs(angle) > (120 * DEGREES_TO_RADIANS)) // 120 degree range facing left
 			axis_state[0] = -1;
 
-		else {
+		else
+		{
 			// joystick is neutral horizontally, so the control should be released
 			// however: prevent stop running if the Kid was already running / trying to do a running-jump
 			// (this tweak makes it a bit easier to do (multiple) running jumps)
-			if (!(angle < 0 /*facing upward*/ && Kid.action == actions_1_run_jump)) {
+			if (!(angle < 0 /*facing upward*/ && Kid.action == actions_1_run_jump))
+			{
 				axis_state[0] = 0;
 			}
 		}
 
-		if (angle < (-30*DEGREES_TO_RADIANS) && angle > (-150*DEGREES_TO_RADIANS)) // 120 degree range facing up
+		if (angle < (-30 * DEGREES_TO_RADIANS) && angle > (-150 * DEGREES_TO_RADIANS)) // 120 degree range facing up
 			axis_state[1] = -1;
 
 		// down slightly less sensitive than up (prevent annoyance when your thumb slips down a bit by accident)
 		// (not sure if this adjustment is really necessary)
-		else if (angle > (35*DEGREES_TO_RADIANS) && angle < (145*DEGREES_TO_RADIANS)) // 110 degree range facing down
+		else if (angle > (35 * DEGREES_TO_RADIANS) && angle < (145 * DEGREES_TO_RADIANS)) // 110 degree range facing down
 			axis_state[1] = 1;
 
-		else {
+		else
+		{
 			// joystick is neutral vertically, so the control should be released
 			// however: should prevent unintended standing up when attempting to crouch-hop
-			if (!((Kid.frame >= frame_108_fall_land_2 && Kid.frame <= frame_112_stand_up_from_crouch_3)
-				  && angle > 0 /*facing downward*/))
+			if (!((Kid.frame >= frame_108_fall_land_2 && Kid.frame <= frame_112_stand_up_from_crouch_3) && angle > 0 /*facing downward*/))
 			{
 				axis_state[1] = 0;
 			}
@@ -1551,33 +1781,46 @@ void get_joystick_state(int raw_x, int raw_y, int axis_state[2]) {
 	}
 }
 
-void get_joystick_state_hor_only(int raw_x, int axis_state[2]) {
-	if (raw_x > joystick_threshold) {
+void get_joystick_state_hor_only(int raw_x, int axis_state[2])
+{
+	if (raw_x > joystick_threshold)
+	{
 		axis_state[0] = 1;
-	} else if (raw_x < -joystick_threshold) {
+	}
+	else if (raw_x < -joystick_threshold)
+	{
 		axis_state[0] = -1;
-	} else axis_state[0] = 0;
+	}
+	else
+		axis_state[0] = 0;
 
 	// disregard all vertical input from the joystick controls (only use Y and A buttons or D-pad for up/down)
 	axis_state[1] = 0;
 }
 
 // seg000:1051
-void read_joyst_control() {
+void read_joyst_control()
+{
 	int key_state;
-	int* joy_axis_ptr;
-	if (fixes->fix_register_quick_input) {
+	int *joy_axis_ptr;
+	if (fixes->fix_register_quick_input)
+	{
 		key_state = KEYSTATE_HELD | KEYSTATE_HELD_NEW;
 		joy_axis_ptr = joy_axis_max;
-	} else {
+	}
+	else
+	{
 		key_state = KEYSTATE_HELD;
 		joy_axis_ptr = joy_axis;
 	}
 
-	if (joystick_only_horizontal) {
+	if (joystick_only_horizontal)
+	{
 		get_joystick_state_hor_only(joy_axis_ptr[SDL_CONTROLLER_AXIS_LEFTX], joy_left_stick_states);
 		get_joystick_state_hor_only(joy_axis_ptr[SDL_CONTROLLER_AXIS_RIGHTX], joy_right_stick_states);
-	} else {
+	}
+	else
+	{
 		get_joystick_state(joy_axis_ptr[SDL_CONTROLLER_AXIS_LEFTX], joy_axis_ptr[SDL_CONTROLLER_AXIS_LEFTY], joy_left_stick_states);
 		get_joystick_state(joy_axis_ptr[SDL_CONTROLLER_AXIS_RIGHTX], joy_axis_ptr[SDL_CONTROLLER_AXIS_RIGHTY], joy_right_stick_states);
 	}
@@ -1595,92 +1838,113 @@ void read_joyst_control() {
 		control_y = CONTROL_HELD_DOWN;
 
 	if (joy_button_states[JOYINPUT_X] & key_state ||
-			joy_axis_ptr[SDL_CONTROLLER_AXIS_TRIGGERLEFT] > 8000 ||
-			joy_axis_ptr[SDL_CONTROLLER_AXIS_TRIGGERRIGHT] > 8000)
+		joy_axis_ptr[SDL_CONTROLLER_AXIS_TRIGGERLEFT] > 8000 ||
+		joy_axis_ptr[SDL_CONTROLLER_AXIS_TRIGGERRIGHT] > 8000)
 	{
 		control_shift = CONTROL_HELD;
 	}
-
 }
 
 // seg000:10EA
-void draw_kid_hp(short curr_hp,short max_hp) {
-	for (short drawn_hp_index = curr_hp; drawn_hp_index < max_hp; ++drawn_hp_index) {
+void draw_kid_hp(short curr_hp, short max_hp)
+{
+	for (short drawn_hp_index = curr_hp; drawn_hp_index < max_hp; ++drawn_hp_index)
+	{
 		// empty HP
 		method_6_blit_img_to_scr(get_image(id_chtab_2_kid, 217), drawn_hp_index * 7, 194, blitters_0_no_transp);
 	}
-	for (short drawn_hp_index = 0; drawn_hp_index < curr_hp; ++drawn_hp_index) {
+	for (short drawn_hp_index = 0; drawn_hp_index < curr_hp; ++drawn_hp_index)
+	{
 		// full HP
 		method_6_blit_img_to_scr(get_image(id_chtab_2_kid, 216), drawn_hp_index * 7, 194, blitters_0_no_transp);
 	}
 }
 
 // seg000:1159
-void draw_guard_hp(short curr_hp,short max_hp) {
-	if (chtab_addrs[id_chtab_5_guard] == NULL) return;
+void draw_guard_hp(short curr_hp, short max_hp)
+{
+	if (chtab_addrs[id_chtab_5_guard] == NULL)
+		return;
 	short guard_charid = Guard.charid;
 	if (guard_charid != charid_4_skeleton &&
 		guard_charid != charid_24_mouse &&
 		// shadow has HP only on level 12
-		(guard_charid != charid_1_shadow || current_level == 12)
-	) {
-		for (short drawn_hp_index = curr_hp; drawn_hp_index < max_hp; ++drawn_hp_index) {
+		(guard_charid != charid_1_shadow || current_level == 12))
+	{
+		for (short drawn_hp_index = curr_hp; drawn_hp_index < max_hp; ++drawn_hp_index)
+		{
 			method_6_blit_img_to_scr(chtab_addrs[id_chtab_5_guard]->images[0], 314 - drawn_hp_index * 7, 194, blitters_9_black);
 		}
-		for (short drawn_hp_index = 0; drawn_hp_index < curr_hp; ++drawn_hp_index) {
+		for (short drawn_hp_index = 0; drawn_hp_index < curr_hp; ++drawn_hp_index)
+		{
 			method_6_blit_img_to_scr(chtab_addrs[id_chtab_5_guard]->images[0], 314 - drawn_hp_index * 7, 194, blitters_0_no_transp);
 		}
 	}
 }
 
 // seg000:11EC
-void add_life() {
+void add_life()
+{
 	short hpmax = hitp_max;
 	++hpmax;
 	// CusPop: set maximum number of hitpoints (max_hitp_allowed, default = 10)
-//	if (hpmax > 10) hpmax = 10; // original
-	if (hpmax > custom->max_hitp_allowed) hpmax = custom->max_hitp_allowed;
+	//	if (hpmax > 10) hpmax = 10; // original
+	if (hpmax > custom->max_hitp_allowed)
+		hpmax = custom->max_hitp_allowed;
 	hitp_max = hpmax;
 	set_health_life();
 }
 
 // seg000:1200
-void set_health_life() {
+void set_health_life()
+{
 	hitp_delta = hitp_max - hitp_curr;
 }
 
 // seg000:120B
-void draw_hp() {
-	if (hitp_delta) {
+void draw_hp()
+{
+	if (hitp_delta)
+	{
 		draw_kid_hp(hitp_curr, hitp_max);
 	}
-	if (hitp_curr == 1 && current_level != 15) {
+	if (hitp_curr == 1 && current_level != 15)
+	{
 		// blinking hitpoint
-		if (rem_tick & 1) {
+		if (rem_tick & 1)
+		{
 			draw_kid_hp(1, 0);
-		} else {
+		}
+		else
+		{
 			draw_kid_hp(0, 1);
 		}
 	}
-	if (guardhp_delta) {
+	if (guardhp_delta)
+	{
 		draw_guard_hp(guardhp_curr, guardhp_max);
 	}
-	if (guardhp_curr == 1) {
-		if (rem_tick & 1) {
+	if (guardhp_curr == 1)
+	{
+		if (rem_tick & 1)
+		{
 			draw_guard_hp(1, 0);
-		} else {
+		}
+		else
+		{
 			draw_guard_hp(0, 1);
 		}
 	}
 }
 
 // seg000:127B
-void do_delta_hp() {
+void do_delta_hp()
+{
 	// level 12: if the shadow is hurt, Kid is also hurt
 	if (Opp.charid == charid_1_shadow &&
 		current_level == 12 &&
-		guardhp_delta != 0
-	) {
+		guardhp_delta != 0)
+	{
 		hitp_delta = guardhp_delta;
 	}
 	hitp_curr = MIN(MAX(hitp_curr + hitp_delta, 0), hitp_max);
@@ -1745,8 +2009,7 @@ byte sound_prio_table[] = {
 	0x01, // sound_54_intro_music
 	0x01, // sound_55_story_1_absence
 	0x01, // sound_56_ending_music
-	0x00
-};
+	0x00};
 byte sound_pcspeaker_exists[] = {
 	1, // sound_0_fell_to_death
 	0, // sound_1_falling
@@ -1805,10 +2068,10 @@ byte sound_pcspeaker_exists[] = {
 	1, // sound_54_intro_music
 	1, // sound_55_story_1_absence
 	1, // sound_56_ending_music
-	0
-};
+	0};
 
-void fix_sound_priorities() {
+void fix_sound_priorities()
+{
 	// Change values to match those in PoP 1.3.
 
 	// The "spiked" sound didn't interrupt the normal spikes sound when the prince ran into spikes.
@@ -1820,22 +2083,28 @@ void fix_sound_priorities() {
 }
 
 // seg000:12C5
-void play_sound(int sound_id) {
-	//printf("Would play sound %d\n", sound_id);
-	if (next_sound < 0 || sound_prio_table[sound_id] <= sound_prio_table[next_sound]) {
-		if (NULL == sound_pointers[sound_id]) return;
-		if (sound_pcspeaker_exists[sound_id] != 0 || sound_pointers[sound_id]->type != sound_speaker) {
+void play_sound(int sound_id)
+{
+	// printf("Would play sound %d\n", sound_id);
+	if (next_sound < 0 || sound_prio_table[sound_id] <= sound_prio_table[next_sound])
+	{
+		if (NULL == sound_pointers[sound_id])
+			return;
+		if (sound_pcspeaker_exists[sound_id] != 0 || sound_pointers[sound_id]->type != sound_speaker)
+		{
 			next_sound = sound_id;
 		}
 	}
 }
 
 // seg000:1304
-void play_next_sound() {
-	if (next_sound >= 0) {
+void play_next_sound()
+{
+	if (next_sound >= 0)
+	{
 		if (!check_sound_playing() ||
-			(sound_interruptible[current_sound] != 0 && sound_prio_table[next_sound] <= sound_prio_table[current_sound])
-		) {
+			(sound_interruptible[current_sound] != 0 && sound_prio_table[next_sound] <= sound_prio_table[current_sound]))
+		{
 			current_sound = next_sound;
 			play_sound_from_buffer(sound_pointers[current_sound]);
 		}
@@ -1844,26 +2113,33 @@ void play_next_sound() {
 }
 
 // seg000:1353
-void check_sword_vs_sword() {
-	if (Kid.frame == 167 || Guard.frame == 167) {
+void check_sword_vs_sword()
+{
+	if (Kid.frame == 167 || Guard.frame == 167)
+	{
 		play_sound(sound_10_sword_vs_sword); // sword vs. sword
 	}
 }
 
 // seg000:136A
-void load_chtab_from_file(int chtab_id,int resource,const char* filename,int palette_bits) {
-	//printf("Loading chtab %d, id %d from %s\n",chtab_id,resource,filename);
-	if (chtab_addrs[chtab_id] != NULL) return;
-	dat_type* dathandle = open_dat(filename, 'G');
+void load_chtab_from_file(int chtab_id, int resource, const char *filename, int palette_bits)
+{
+	// printf("Loading chtab %d, id %d from %s\n",chtab_id,resource,filename);
+	if (chtab_addrs[chtab_id] != NULL)
+		return;
+	dat_type *dathandle = open_dat(filename, 'G');
 	chtab_addrs[chtab_id] = load_sprites_from_file(resource, palette_bits, 1);
 	close_dat(dathandle);
 }
 
 // seg000:13BA
-void free_all_chtabs_from(int first) {
+void free_all_chtabs_from(int first)
+{
 	free_peels();
-	for (word chtab_id = first; chtab_id < 10; ++chtab_id) {
-		if (chtab_addrs[chtab_id]) {
+	for (word chtab_id = first; chtab_id < 10; ++chtab_id)
+	{
+		if (chtab_addrs[chtab_id])
+		{
 			free_chtab(chtab_addrs[chtab_id]);
 			chtab_addrs[chtab_id] = NULL;
 		}
@@ -1871,23 +2147,29 @@ void free_all_chtabs_from(int first) {
 }
 
 // seg009:12EF
-void load_one_optgraf(chtab_type* chtab_ptr,dat_pal_type* pal_ptr,int base_id,int min_index,int max_index) {
-	for (short index = min_index; index <= max_index; ++index) {
-		image_type* image = load_image(base_id + index + 1, pal_ptr);
-		if (image != NULL) chtab_ptr->images[index] = image;
+void load_one_optgraf(chtab_type *chtab_ptr, dat_pal_type *pal_ptr, int base_id, int min_index, int max_index)
+{
+	for (short index = min_index; index <= max_index; ++index)
+	{
+		image_type *image = load_image(base_id + index + 1, pal_ptr);
+		if (image != NULL)
+			chtab_ptr->images[index] = image;
 	}
 }
 
 byte optgraf_min[] = {0x01, 0x1E, 0x4B, 0x4E, 0x56, 0x65, 0x7F, 0x0A};
 byte optgraf_max[] = {0x09, 0x1F, 0x4D, 0x53, 0x5B, 0x7B, 0x8F, 0x0D};
 // seg000:13FC
-void load_more_opt_graf(const char* filename) {
+void load_more_opt_graf(const char *filename)
+{
 	// stub
 	dat_shpl_type area;
-	dat_type* dathandle = NULL;
-	for (short graf_index = 0; graf_index < 8; ++graf_index) {
+	dat_type *dathandle = NULL;
+	for (short graf_index = 0; graf_index < 8; ++graf_index)
+	{
 		/*if (...) */ {
-			if (dathandle == NULL) {
+			if (dathandle == NULL)
+			{
 				dathandle = open_dat(filename, 'G');
 				load_from_opendats_to_area(200, &area, sizeof(area), "pal");
 				area.palette.row_bits = 0x20;
@@ -1895,15 +2177,18 @@ void load_more_opt_graf(const char* filename) {
 			load_one_optgraf(chtab_addrs[id_chtab_6_environment], &area.palette, 1200, optgraf_min[graf_index] - 1, optgraf_max[graf_index] - 1);
 		}
 	}
-	if (dathandle != NULL) {
+	if (dathandle != NULL)
+	{
 		close_dat(dathandle);
 	}
 }
 
 // seg000:148D
-int do_paused() {
+int do_paused()
+{
 #ifdef USE_REPLAY
-	if (replaying && skipping_replay) return 0;
+	if (replaying && skipping_replay)
+		return 0;
 #endif
 
 	word key;
@@ -1912,48 +2197,60 @@ int do_paused() {
 	control_shift = CONTROL_RELEASED;
 	control_y = CONTROL_RELEASED;
 	control_x = CONTROL_RELEASED;
-	if (is_joyst_mode) {
+	if (is_joyst_mode)
+	{
 		read_joyst_control();
-	} else {
+	}
+	else
+	{
 		read_keyb_control();
 	}
 	key = process_key();
-	if (is_ending_sequence && is_paused) {
+	if (is_ending_sequence && is_paused)
+	{
 		is_paused = 0; // fix being able to pause the game during the ending sequence
 	}
-	if (is_paused) {
+	if (is_paused)
+	{
 		// feather fall gets interrupted by pause
 		if (fixes->fix_quicksave_during_feather &&
-				is_feather_fall > 0 &&
-				check_sound_playing()) {
+			is_feather_fall > 0 &&
+			check_sound_playing())
+		{
 			stop_sounds();
 		}
 		display_text_bottom("GAME PAUSED");
 #ifdef USE_MENU
-		if (enable_pause_menu || is_menu_shown) {
+		if (enable_pause_menu || is_menu_shown)
+		{
 			draw_menu();
 			menu_was_closed();
-		} else
+		}
+		else
 #endif
 		{
 			is_paused = 0;
 			// busy waiting?
-			do {
+			do
+			{
 				idle();
 				delay_ticks(1);
-			} while (! process_key());
+			} while (!process_key());
 		}
 		erase_bottom_text(1);
 	}
 
 	// As we processed input for current gameplay tick change all input to reflect their current status
-	for (int i = 0; i < SDL_NUM_SCANCODES; i++) {
+	for (int i = 0; i < SDL_NUM_SCANCODES; i++)
+	{
 		key_states[i] &= ~KEYSTATE_HELD_NEW;
 	}
-	for (int i = 0; i < JOYINPUT_NUM; i++) {
+	for (int i = 0; i < JOYINPUT_NUM; i++)
+	{
 		joy_button_states[i] &= ~KEYSTATE_HELD_NEW;
 	}
-	for (int i = 0; i < JOY_AXIS_NUM; i++) {
+	for (int i = 0; i < JOY_AXIS_NUM; i++)
+	{
 		joy_axis_max[i] = joy_axis[i];
 	}
 
@@ -1961,56 +2258,65 @@ int do_paused() {
 }
 
 // seg000:1500
-void read_keyb_control() {
+void read_keyb_control()
+{
 	int key_state;
-	if (fixes->fix_register_quick_input) {
+	if (fixes->fix_register_quick_input)
+	{
 		key_state = KEYSTATE_HELD | KEYSTATE_HELD_NEW;
-	} else {
+	}
+	else
+	{
 		key_state = KEYSTATE_HELD;
 	}
 
-	if (key_states[SDL_SCANCODE_UP] & key_state || key_states[SDL_SCANCODE_HOME] & key_state || key_states[SDL_SCANCODE_PAGEUP] & key_state
-	    || key_states[SDL_SCANCODE_KP_8] & key_state || key_states[SDL_SCANCODE_KP_7] & key_state || key_states[SDL_SCANCODE_KP_9] & key_state
-	) {
+	if (key_states[SDL_SCANCODE_UP] & key_state || key_states[SDL_SCANCODE_HOME] & key_state || key_states[SDL_SCANCODE_PAGEUP] & key_state || key_states[SDL_SCANCODE_KP_8] & key_state || key_states[SDL_SCANCODE_KP_7] & key_state || key_states[SDL_SCANCODE_KP_9] & key_state)
+	{
 		control_y = CONTROL_HELD_UP;
-	} else if (key_states[SDL_SCANCODE_CLEAR] & key_state || key_states[SDL_SCANCODE_DOWN] & key_state
-	           || key_states[SDL_SCANCODE_KP_5] & key_state || key_states[SDL_SCANCODE_KP_2] & key_state
-	) {
+	}
+	else if (key_states[SDL_SCANCODE_CLEAR] & key_state || key_states[SDL_SCANCODE_DOWN] & key_state || key_states[SDL_SCANCODE_KP_5] & key_state || key_states[SDL_SCANCODE_KP_2] & key_state)
+	{
 		control_y = CONTROL_HELD_DOWN;
 	}
-	if (key_states[SDL_SCANCODE_LEFT] & key_state || key_states[SDL_SCANCODE_HOME] & key_state
-	    || key_states[SDL_SCANCODE_KP_4] & key_state || key_states[SDL_SCANCODE_KP_7] & key_state
-	) {
+	if (key_states[SDL_SCANCODE_LEFT] & key_state || key_states[SDL_SCANCODE_HOME] & key_state || key_states[SDL_SCANCODE_KP_4] & key_state || key_states[SDL_SCANCODE_KP_7] & key_state)
+	{
 		control_x = CONTROL_HELD_LEFT;
-	} else if (key_states[SDL_SCANCODE_RIGHT] & key_state || key_states[SDL_SCANCODE_PAGEUP] & key_state
-	           || key_states[SDL_SCANCODE_KP_6] & key_state || key_states[SDL_SCANCODE_KP_9] & key_state
-	) {
+	}
+	else if (key_states[SDL_SCANCODE_RIGHT] & key_state || key_states[SDL_SCANCODE_PAGEUP] & key_state || key_states[SDL_SCANCODE_KP_6] & key_state || key_states[SDL_SCANCODE_KP_9] & key_state)
+	{
 		control_x = CONTROL_HELD_RIGHT;
 	}
-	
-	if(key_states[SDL_SCANCODE_LSHIFT] & key_state || key_states[SDL_SCANCODE_RSHIFT] & key_state)
+
+	if (key_states[SDL_SCANCODE_LSHIFT] & key_state || key_states[SDL_SCANCODE_RSHIFT] & key_state)
 		control_shift = CONTROL_HELD;
 	else
 		control_shift = CONTROL_RELEASED;
 
-	#ifdef USE_DEBUG_CHEATS
-	if (cheats_enabled && debug_cheats_enabled) {
-		if (key_states[SDL_SCANCODE_RIGHTBRACKET] & key_state) ++Char.x;
-		else if (key_states[SDL_SCANCODE_LEFTBRACKET] & key_state) --Char.x;
+#ifdef USE_DEBUG_CHEATS
+	if (cheats_enabled && debug_cheats_enabled)
+	{
+		if (key_states[SDL_SCANCODE_RIGHTBRACKET] & key_state)
+			++Char.x;
+		else if (key_states[SDL_SCANCODE_LEFTBRACKET] & key_state)
+			--Char.x;
 	}
-	#endif
+#endif
 }
 
 // seg000:156D
-void copy_screen_rect(const rect_type* source_rect_ptr) {
-	const rect_type* target_rect_ptr;
+void copy_screen_rect(const rect_type *source_rect_ptr)
+{
+	const rect_type *target_rect_ptr;
 	rect_type target_rect;
-	if (upside_down) {
+	if (upside_down)
+	{
 		target_rect_ptr = &target_rect;
-		/**target_rect_ptr*/target_rect = *source_rect_ptr;
-		/*target_rect_ptr->*/target_rect.top = SCREEN_GAMEPLAY_HEIGHT - source_rect_ptr->bottom;
-		/*target_rect_ptr->*/target_rect.bottom = SCREEN_GAMEPLAY_HEIGHT - source_rect_ptr->top;
-	} else {
+		/**target_rect_ptr*/ target_rect = *source_rect_ptr;
+		/*target_rect_ptr->*/ target_rect.top = SCREEN_GAMEPLAY_HEIGHT - source_rect_ptr->bottom;
+		/*target_rect_ptr->*/ target_rect.bottom = SCREEN_GAMEPLAY_HEIGHT - source_rect_ptr->top;
+	}
+	else
+	{
 		target_rect_ptr = source_rect_ptr;
 	}
 	method_1_blit_rect(onscreen_surface_, offscreen_surface, target_rect_ptr, target_rect_ptr, 0);
@@ -2020,18 +2326,23 @@ void copy_screen_rect(const rect_type* source_rect_ptr) {
 }
 
 // seg000:15E9
-void toggle_upside() {
-	upside_down = ~ upside_down;
+void toggle_upside()
+{
+	upside_down = ~upside_down;
 	need_redraw_because_flipped = 1;
 }
 
 // seg000:15F8
-void feather_fall() {
-	//printf("slow fall started at: rem_min = %d, rem_tick = %d\n", rem_min, rem_tick);
-	if (fixes->fix_quicksave_during_feather) {
+void feather_fall()
+{
+	// printf("slow fall started at: rem_min = %d, rem_tick = %d\n", rem_min, rem_tick);
+	if (fixes->fix_quicksave_during_feather)
+	{
 		// feather fall is treated as a timer
 		is_feather_fall = FEATHER_FALL_LENGTH * get_ticks_per_sec(timer_1);
-	} else {
+	}
+	else
+	{
 		is_feather_fall = 1;
 	}
 	flash_color = 2; // green
@@ -2041,33 +2352,42 @@ void feather_fall() {
 }
 
 // seg000:1618
-int parse_grmode() {
+int parse_grmode()
+{
 	// stub
 	set_gr_mode(gmMcgaVga);
 	return gmMcgaVga;
 }
 
 // seg000:172C
-void gen_palace_wall_colors() {
+void gen_palace_wall_colors()
+{
 	dword old_randseed = random_seed;
 	random_seed = drawn_room;
 	prandom(1); // discard
-	for (short row = 0; row < 3; row++) {
-		for (short subrow = 0; subrow < 4; subrow++) {
+	for (short row = 0; row < 3; row++)
+	{
+		for (short subrow = 0; subrow < 4; subrow++)
+		{
 			word color_base;
-			if (subrow % 2) {
+			if (subrow % 2)
+			{
 				color_base = 0x61; // 0x61..0x64 in subrow 1 and 3
-			} else {
+			}
+			else
+			{
 				color_base = 0x66; // 0x66..0x69 in subrow 0 and 2
 			}
 			word prev_color = -1;
-			for (short column = 0; column <= 10; ++column) {
+			for (short column = 0; column <= 10; ++column)
+			{
 				word color;
-				do {
+				do
+				{
 					color = color_base + prandom(3);
 				} while (color == prev_color);
 				palace_wall_colors[44 * row + 11 * subrow + column] = color;
-				//palace_wall_colors[row][subrow][column] = color;
+				// palace_wall_colors[row][subrow][column] = color;
 				prev_color = color;
 			}
 		}
@@ -2076,13 +2396,15 @@ void gen_palace_wall_colors() {
 }
 
 // data:042E
-const rect_type rect_titles = {106,24,195,296};
+const rect_type rect_titles = {106, 24, 195, 296};
 
 // seg000:17E6
-void show_title() {
+void show_title()
+{
 	load_opt_sounds(sound_50_story_2_princess, sound_55_story_1_absence); // main theme, story, princess door
 	dont_reset_time = 0;
-	if(offscreen_surface) free_surface(offscreen_surface); // missing in original
+	if (offscreen_surface)
+		free_surface(offscreen_surface); // missing in original
 	offscreen_surface = make_offscreen_buffer(&screen_rect);
 	load_title_images(1);
 	current_target_surface = offscreen_surface;
@@ -2090,9 +2412,9 @@ void show_title() {
 	do_paused();
 
 	draw_full_image(TITLE_MAIN);
-	fade_in_2(offscreen_surface, 0x1000); //STUB
+	fade_in_2(offscreen_surface, 0x1000); // STUB
 	method_1_blit_rect(onscreen_surface_, offscreen_surface, &screen_rect, &screen_rect, blitters_0_no_transp);
-	current_sound = sound_54_intro_music; // added
+	current_sound = sound_54_intro_music;						  // added
 	play_sound_from_buffer(sound_pointers[sound_54_intro_music]); // main theme
 	start_timer(timer_0, 0x82);
 	draw_full_image(TITLE_PRESENTS);
@@ -2125,12 +2447,13 @@ void show_title() {
 	draw_full_image(STORY_FRAME);
 	draw_full_image(STORY_ABSENCE);
 	current_target_surface = onscreen_surface_;
-	while (check_sound_playing()) {
+	while (check_sound_playing())
+	{
 		idle();
 		do_paused();
 		delay_ticks(1);
 	}
-//	method_1_blit_rect(onscreen_surface_, offscreen_surface, &screen_rect, &screen_rect, blitters_0_no_transp);
+	//	method_1_blit_rect(onscreen_surface_, offscreen_surface, &screen_rect, &screen_rect, blitters_0_no_transp);
 	play_sound_from_buffer(sound_pointers[sound_55_story_1_absence]); // story 1: In the absence
 	transition_ltr();
 	pop_wait(timer_0, 0x258);
@@ -2147,7 +2470,8 @@ void show_title() {
 	draw_full_image(TITLE_MAIN);
 	draw_full_image(TITLE_POP);
 	draw_full_image(TITLE_MECHNER);
-	while (check_sound_playing()) {
+	while (check_sound_playing())
+	{
 		idle();
 		do_paused();
 		delay_ticks(1);
@@ -2158,7 +2482,8 @@ void show_title() {
 	draw_full_image(STORY_CREDITS);
 	transition_ltr();
 	pop_wait(timer_0, 0x168);
-	if (hof_count) {
+	if (hof_count)
+	{
 		draw_full_image(STORY_FRAME);
 		draw_full_image(HOF_POP);
 		show_hof();
@@ -2166,7 +2491,8 @@ void show_title() {
 		pop_wait(timer_0, 0xF0);
 	}
 	current_target_surface = onscreen_surface_;
-	while (check_sound_playing()) {
+	while (check_sound_playing())
+	{
 		idle();
 		do_paused();
 		delay_ticks(1);
@@ -2181,7 +2507,8 @@ void show_title() {
 Uint64 last_transition_counter;
 
 // seg000:1BB3
-void transition_ltr() {
+void transition_ltr()
+{
 	rect_type rect;
 	rect.top = 0;
 	rect.bottom = 200;
@@ -2197,57 +2524,69 @@ void transition_ltr() {
 	Uint64 counters_per_frame = perf_frequency / transition_fps;
 	last_transition_counter = SDL_GetPerformanceCounter();
 	int overshoot = 0;
-	for (short position = 0; position < 320; position += 2) {
+	for (short position = 0; position < 320; position += 2)
+	{
 		method_1_blit_rect(onscreen_surface_, offscreen_surface, &rect, &rect, 0);
 		rect.left += 2;
 		rect.right += 2;
-		if (overshoot > 0 && overshoot < 10) {
+		if (overshoot > 0 && overshoot < 10)
+		{
 			--overshoot;
 			continue; // On slow systems (e.g. Raspberry Pi), allow the animation to catch up, before refreshing the screen.
 		}
 		idle(); // modified
 		do_paused();
 		// Add an appropriate delay until the next frame, so that the animation isn't instantaneous on fast CPUs.
-		for (;;) {
+		for (;;)
+		{
 			Uint64 current_counter = SDL_GetPerformanceCounter();
 			int frametimes_elapsed = (int)((current_counter / counters_per_frame) - (last_transition_counter / counters_per_frame));
-			if (frametimes_elapsed > 0) {
+			if (frametimes_elapsed > 0)
+			{
 				overshoot = frametimes_elapsed - 1;
 				last_transition_counter = current_counter;
 				break; // Proceed to the next frame.
-			} else {
+			}
+			else
+			{
 				SDL_Delay(1);
 			}
 		}
-
 	}
 }
 
 // seg000:1C0F
-void release_title_images() {
-	if (chtab_title50) {
+void release_title_images()
+{
+	if (chtab_title50)
+	{
 		free_chtab(chtab_title50);
 		chtab_title50 = NULL;
 	}
-	if (chtab_title40) {
+	if (chtab_title40)
+	{
 		free_chtab(chtab_title40);
 		chtab_title40 = NULL;
 	}
 }
 
 // seg000:1C3A
-void draw_full_image(enum full_image_id id) {
-	image_type* decoded_image;
-	image_type* mask = NULL;
+void draw_full_image(enum full_image_id id)
+{
+	image_type *decoded_image;
+	image_type *mask = NULL;
 
-	if (id >= MAX_FULL_IMAGES) return;
-	if (NULL == *full_image[id].chtab) return;
+	if (id >= MAX_FULL_IMAGES)
+		return;
+	if (NULL == *full_image[id].chtab)
+		return;
 	decoded_image = (*full_image[id].chtab)->images[full_image[id].id];
 	int blit = full_image[id].blitter;
 	int xpos = full_image[id].xpos;
 	int ypos = full_image[id].ypos;
 
-	switch (blit) {
+	switch (blit)
+	{
 	case blitters_white:
 		blit = get_text_color(15, color_15_brightwhite, 0x800);
 		/* fall through */
@@ -2255,13 +2594,17 @@ void draw_full_image(enum full_image_id id) {
 		method_3_blit_mono(decoded_image, xpos, ypos, blitters_0_no_transp, blit);
 		break;
 	case blitters_10h_transp:
-		if (graphics_mode == gmCga || graphics_mode == gmHgaHerc) {
+		if (graphics_mode == gmCga || graphics_mode == gmHgaHerc)
+		{
 			//...
-		} else {
+		}
+		else
+		{
 			mask = decoded_image;
 		}
 		draw_image_transp(decoded_image, mask, xpos, ypos);
-		if (graphics_mode == gmCga || graphics_mode == gmHgaHerc) {
+		if (graphics_mode == gmCga || graphics_mode == gmHgaHerc)
+		{
 			free(mask);
 		}
 		break;
@@ -2272,82 +2615,107 @@ void draw_full_image(enum full_image_id id) {
 }
 
 // seg000:1D2C
-void load_kid_sprite() {
-	load_chtab_from_file(id_chtab_2_kid, 400, "KID.DAT", 1<<7);
+void load_kid_sprite()
+{
+	load_chtab_from_file(id_chtab_2_kid, 400, "KID.DAT", 1 << 7);
 }
 
-const char* save_file = "PRINCE.SAV";
+const char *save_file = "PRINCE.SAV";
 
-const char* get_save_path(char* custom_path_buffer, size_t max_len) {
-	return get_writable_file_path(custom_path_buffer, max_len, save_file /*PRINCE.SAV*/ );
+const char *get_save_path(char *custom_path_buffer, size_t max_len)
+{
+	return get_writable_file_path(custom_path_buffer, max_len, save_file /*PRINCE.SAV*/);
 }
 
 // seg000:1D45
-void save_game() {
+void save_game()
+{
 	word success = 0;
 	char custom_save_path[POP_MAX_PATH];
-	const char* save_path = get_save_path(custom_save_path, sizeof(custom_save_path));
+	const char *save_path = get_save_path(custom_save_path, sizeof(custom_save_path));
 
-	//FILE* handle = fopen(save_path, "wb");
+	// FILE* handle = fopen(save_path, "wb");
 	printf("save_game: %s\n", save_path);
 	fs_unlink(fs_unlink);
 	file_t handle = fs_open(save_path, O_WRONLY);
-	if (handle != NULL) {
-		if (fwrite(&rem_min, 1, 2, handle) != 2) goto error;
-		if (fwrite(&rem_tick, 1, 2, handle) != 2) goto error;
-		if (fwrite(&current_level, 1, 2, handle) != 2) goto error;
-		if (fwrite(&hitp_beg_lev, 1, 2, handle) != 2) goto error;
+	if (handle != NULL)
+	{
+		if (fwrite(&rem_min, 1, 2, handle) != 2)
+			goto error;
+		if (fwrite(&rem_tick, 1, 2, handle) != 2)
+			goto error;
+		if (fwrite(&current_level, 1, 2, handle) != 2)
+			goto error;
+		if (fwrite(&hitp_beg_lev, 1, 2, handle) != 2)
+			goto error;
 		success = 1;
-		error:
-		if (!success) {
+	error:
+		if (!success)
+		{
 			printf("save_game: fwrite: Can not write to: %s\n", save_path);
 		}
 		fclose(handle);
-		if (!success) {
+		if (!success)
+		{
 			remove(save_path);
 		}
-	} else {
+	}
+	else
+	{
 		perror("save_game: fopen");
 		printf("Tried to open for writing: %s\n", save_path);
 	}
 
-	if (success) {
+	if (success)
+	{
 		display_text_bottom("GAME SAVED");
-	} else {
+	}
+	else
+	{
 		display_text_bottom("UNABLE TO SAVE GAME");
-		//play_sound_from_buffer(&sound_cant_save);
+		// play_sound_from_buffer(&sound_cant_save);
 	}
 	text_time_remaining = 24;
 }
 
 // seg000:1E38
-short load_game() {
+short load_game()
+{
 	word success = 0;
 	char custom_save_path[POP_MAX_PATH];
-	const char* save_path = get_save_path(custom_save_path, sizeof(custom_save_path));
+	const char *save_path = get_save_path(custom_save_path, sizeof(custom_save_path));
 
-	//FILE* handle = fopen(save_path, "rb");
+	// FILE* handle = fopen(save_path, "rb");
 	printf("load_game: %s\n", save_path);
 	fs_unlink(fs_unlink);
-	file_t handle = fs_open(fs_unlink,  O_RDONLY | O_DIR);
-	if (handle != NULL) {
-		if (fread(&rem_min, 1, 2, handle) != 2) goto error;
-		if (fread(&rem_tick, 1, 2, handle) != 2) goto error;
-		if (fread(&start_level, 1, 2, handle) != 2) goto error;
-		if (fread(&hitp_beg_lev, 1, 2, handle) != 2) goto error;
+	file_t handle = fs_open(fs_unlink, O_RDONLY | O_DIR);
+	if (handle != NULL)
+	{
+		if (fread(&rem_min, 1, 2, handle) != 2)
+			goto error;
+		if (fread(&rem_tick, 1, 2, handle) != 2)
+			goto error;
+		if (fread(&start_level, 1, 2, handle) != 2)
+			goto error;
+		if (fread(&hitp_beg_lev, 1, 2, handle) != 2)
+			goto error;
 #ifdef USE_COPYPROT
-		if (enable_copyprot && custom->copyprot_level > 0) {
+		if (enable_copyprot && custom->copyprot_level > 0)
+		{
 			custom->copyprot_level = start_level;
 		}
 #endif
 		success = 1;
 		dont_reset_time = 1;
-		error:
-		if (!success) {
+	error:
+		if (!success)
+		{
 			printf("load_game: fread: Can not read from: %s\n", save_path);
 		}
 		fclose(handle);
-	} else {
+	}
+	else
+	{
 		perror("load_game: fopen");
 		printf("Tried to open for reading: %s\n", save_path);
 	}
@@ -2355,7 +2723,8 @@ short load_game() {
 }
 
 // seg000:1F02
-void clear_screen_and_sounds() {
+void clear_screen_and_sounds()
+{
 	stop_sounds();
 	current_target_surface = rect_sthg(onscreen_surface_, &screen_rect);
 
@@ -2363,8 +2732,10 @@ void clear_screen_and_sounds() {
 	is_ending_sequence = false; // added
 	peels_count = 0;
 	// should these be freed?
-	for (short index = 2; index < 10; ++index) {
-		if (chtab_addrs[index]) {
+	for (short index = 2; index < 10; ++index)
+	{
+		if (chtab_addrs[index])
+		{
 			// Original code does not free these?
 			free_chtab(chtab_addrs[index]);
 			chtab_addrs[index] = NULL;
@@ -2381,11 +2752,15 @@ void clear_screen_and_sounds() {
 }
 
 // seg000:1F7B
-void parse_cmdline_sound() {
+void parse_cmdline_sound()
+{
 	// stub
-	if (check_param("stdsnd")) {
+	if (check_param("stdsnd"))
+	{
 		// Use PC Speaker sounds and music.
-	} else {
+	}
+	else
+	{
 		// Use digi (wave) sounds and MIDI music.
 		sound_flags |= sfDigi;
 		sound_flags |= sfMidi;
@@ -2394,7 +2769,8 @@ void parse_cmdline_sound() {
 }
 
 // seg000:226D
-void free_optional_sounds() {
+void free_optional_sounds()
+{
 	/* //Don't free sounds.
 	for (int sound_id = 44; sound_id < 57; ++sound_id) {
 		free_sound(sound_pointers[sound_id]);
@@ -2404,20 +2780,26 @@ void free_optional_sounds() {
 	// stub
 }
 
-void free_all_sounds() {
-	for (int i = 0; i < 58; ++i) {
+void free_all_sounds()
+{
+	for (int i = 0; i < 58; ++i)
+	{
 		free_sound(sound_pointers[i]);
 		sound_pointers[i] = NULL;
 	}
 }
 
-void load_all_sounds() {
-	if (!use_custom_levelset || always_use_original_music) {
+void load_all_sounds()
+{
+	if (!use_custom_levelset || always_use_original_music)
+	{
 		load_sounds(0, 43);
-		load_opt_sounds(43, 56); //added
-	} else {
+		load_opt_sounds(43, 56); // added
+	}
+	else
+	{
 		// Put it here instead to use data/ for all music and sounds, not just for those in data/music/.
-		//if (!always_use_original_music)
+		// if (!always_use_original_music)
 		{
 			// First load any sounds included in the mod folder...
 			skip_normal_data_files = true;
@@ -2434,78 +2816,94 @@ void load_all_sounds() {
 }
 
 // seg000:22BB
-void free_optsnd_chtab() {
+void free_optsnd_chtab()
+{
 	free_optional_sounds();
 	free_all_chtabs_from(id_chtab_3_princessinstory);
 }
 
 // seg000:22C8
-void load_title_images(int bgcolor) {
-	dat_type* dathandle = open_dat("TITLE.DAT", 'G');
-	chtab_title40 = load_sprites_from_file(40, 1<<11, 1);
-	chtab_title50 = load_sprites_from_file(50, 1<<12, 1);
+void load_title_images(int bgcolor)
+{
+	dat_type *dathandle = open_dat("TITLE.DAT", 'G');
+	chtab_title40 = load_sprites_from_file(40, 1 << 11, 1);
+	chtab_title50 = load_sprites_from_file(50, 1 << 12, 1);
 	close_dat(dathandle);
-	if (graphics_mode == gmMcgaVga) {
+	if (graphics_mode == gmMcgaVga)
+	{
 		// background of text frame
 		SDL_Color color;
-		if (bgcolor) {
+		if (bgcolor)
+		{
 			// RGB(4,0,18h) = #100060 = dark blue
-			set_pal((find_first_pal_row(1<<11) << 4) + 14, 0x04, 0x00, 0x18);
+			set_pal((find_first_pal_row(1 << 11) << 4) + 14, 0x04, 0x00, 0x18);
 			color.r = 0x10;
 			color.g = 0x00;
 			color.b = 0x60;
 			color.a = 0xFF;
-		} else {
+		}
+		else
+		{
 			// RGB(20h,0,0) = #800000 = dark red
-			set_pal((find_first_pal_row(1<<11) << 4) + 14, 0x20, 0x00, 0x00);
+			set_pal((find_first_pal_row(1 << 11) << 4) + 14, 0x20, 0x00, 0x00);
 			color.r = 0x80;
 			color.g = 0x00;
 			color.b = 0x00;
 			color.a = 0xFF;
 		}
-		if (NULL != chtab_title40) {
+		if (NULL != chtab_title40)
+		{
 			SDL_SetPaletteColors(chtab_title40->images[0]->format->palette, &color, 14, 1);
 		}
-	} else if (graphics_mode == gmEga || graphics_mode == gmTga) {
+	}
+	else if (graphics_mode == gmEga || graphics_mode == gmTga)
+	{
 		// ...
 	}
 }
 
 #ifdef USE_COPYPROT
 // data:017A
-const word copyprot_word[] = {9, 1, 6, 4, 5, 3, 6, 3, 4, 4, 3, 2,12, 5,13, 1, 9, 2, 2, 4, 9, 4,11, 8, 5, 4, 1, 6, 2, 4, 6, 8, 4, 2, 7,11, 5, 4, 1, 2};
+const word copyprot_word[] = {9, 1, 6, 4, 5, 3, 6, 3, 4, 4, 3, 2, 12, 5, 13, 1, 9, 2, 2, 4, 9, 4, 11, 8, 5, 4, 1, 6, 2, 4, 6, 8, 4, 2, 7, 11, 5, 4, 1, 2};
 // data:012A
-const word copyprot_line[] = {2, 1, 5, 4, 3, 5, 1, 3, 7, 2, 2, 4, 6, 6, 2, 6, 3, 1, 2, 3, 2, 2, 3,10, 5, 6, 5, 6, 3, 5, 7, 2, 2, 4, 5, 7, 2, 6, 5, 5};
+const word copyprot_line[] = {2, 1, 5, 4, 3, 5, 1, 3, 7, 2, 2, 4, 6, 6, 2, 6, 3, 1, 2, 3, 2, 2, 3, 10, 5, 6, 5, 6, 3, 5, 7, 2, 2, 4, 5, 7, 2, 6, 5, 5};
 // data:00DA
-const word copyprot_page[] = {5, 3, 7, 3, 3, 4, 1, 5,12, 5,11,10, 1, 2, 8, 8, 2, 4, 6, 1, 4, 7, 3, 2, 1, 7,10, 1, 4, 3, 4, 1, 4, 1, 8, 1, 1,10, 3, 3};
+const word copyprot_page[] = {5, 3, 7, 3, 3, 4, 1, 5, 12, 5, 11, 10, 1, 2, 8, 8, 2, 4, 6, 1, 4, 7, 3, 2, 1, 7, 10, 1, 4, 3, 4, 1, 4, 1, 8, 1, 1, 10, 3, 3};
 #endif
 
 // seg000:23F4
-void show_copyprot(int where) {
+void show_copyprot(int where)
+{
 #ifdef USE_COPYPROT
 	char sprintf_temp[140];
-	if (current_level != 15) return;
-	if (where) {
-		if (text_time_remaining || is_cutscene) return;
+	if (current_level != 15)
+		return;
+	if (where)
+	{
+		if (text_time_remaining || is_cutscene)
+			return;
 		text_time_total = 1188;
 		text_time_remaining = 1188;
 		is_show_time = 0;
 		snprintf(sprintf_temp, sizeof(sprintf_temp),
-			"WORD %d LINE %d PAGE %d",
-			copyprot_word[copyprot_idx], copyprot_line[copyprot_idx], copyprot_page[copyprot_idx]);
+				 "WORD %d LINE %d PAGE %d",
+				 copyprot_word[copyprot_idx], copyprot_line[copyprot_idx], copyprot_page[copyprot_idx]);
 		display_text_bottom(sprintf_temp);
-	} else {
+	}
+	else
+	{
 		snprintf(sprintf_temp, sizeof(sprintf_temp),
-			"Drink potion matching the first letter of Word %d on Line %d\n"
-			"of Page %d of the manual.",
-			copyprot_word[copyprot_idx], copyprot_line[copyprot_idx], copyprot_page[copyprot_idx]);
+				 "Drink potion matching the first letter of Word %d on Line %d\n"
+				 "of Page %d of the manual.",
+				 copyprot_word[copyprot_idx], copyprot_line[copyprot_idx], copyprot_page[copyprot_idx]);
 		show_dialog(sprintf_temp);
 	}
 #endif
 }
 
 // seg000:2489
-void show_loading() {
+void show_loading()
+{
 	show_text(&screen_rect, halign_center, valign_middle, "Loading. . . .");
 	update_screen();
 }
@@ -2513,38 +2911,39 @@ void show_loading() {
 // data:42C4
 word which_quote;
 
-char const * const tbl_quotes[2] = {
-"\"(****/****) Incredibly realistic. . . The "
-"adventurer character actually looks human as he "
-"runs, jumps, climbs, and hangs from ledges.\"\n"
-"\n"
-"                                  Computer Entertainer\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\"A tremendous achievement. . . Mechner has crafted "
-"the smoothest animation ever seen in a game of this "
-"type.\n"
-"\n"
-"\"PRINCE OF PERSIA is the STAR WARS of its field.\"\n"
-"\n"
-"                                  Computer Gaming World",
-"\"An unmitigated delight. . . comes as close to "
-"(perfection) as any arcade game has come in a long, "
-"long time. . . what makes this game so wonderful (am "
-"I gushing?) is that the little onscreen character "
-"does not move like a little onscreen character -- he "
-"moves like a person.\"\n"
-"\n"
-"                                      Nibble"
-};
+char const *const tbl_quotes[2] = {
+	"\"(****/****) Incredibly realistic. . . The "
+	"adventurer character actually looks human as he "
+	"runs, jumps, climbs, and hangs from ledges.\"\n"
+	"\n"
+	"                                  Computer Entertainer\n"
+	"\n"
+	"\n"
+	"\n"
+	"\n"
+	"\"A tremendous achievement. . . Mechner has crafted "
+	"the smoothest animation ever seen in a game of this "
+	"type.\n"
+	"\n"
+	"\"PRINCE OF PERSIA is the STAR WARS of its field.\"\n"
+	"\n"
+	"                                  Computer Gaming World",
+	"\"An unmitigated delight. . . comes as close to "
+	"(perfection) as any arcade game has come in a long, "
+	"long time. . . what makes this game so wonderful (am "
+	"I gushing?) is that the little onscreen character "
+	"does not move like a little onscreen character -- he "
+	"moves like a person.\"\n"
+	"\n"
+	"                                      Nibble"};
 
 // seg000:249D
-void show_quotes() {
-	//start_timer(timer_0,0);
-	//remove_timer(timer_0);
-	if (demo_mode && need_quotes) {
+void show_quotes()
+{
+	// start_timer(timer_0,0);
+	// remove_timer(timer_0);
+	if (demo_mode && need_quotes)
+	{
 		draw_rect(&screen_rect, color_0_black);
 		show_text(&screen_rect, halign_left, valign_middle, tbl_quotes[which_quote]);
 		which_quote = !which_quote;
@@ -2556,7 +2955,7 @@ void show_quotes() {
 const rect_type splash_text_1_rect = {0, 0, 50, 320};
 const rect_type splash_text_2_rect = {50, 0, 200, 320};
 
-const char* splash_text_1 = "SDLPoP " SDLPOP_VERSION;
+const char *splash_text_1 = "SDLPoP " SDLPOP_VERSION;
 /*const char* splash_text_2 =
 		"In-game, START opens a settings/quicksave menu.\n"
 		"\n"
@@ -2572,20 +2971,22 @@ const char* splash_text_1 = "SDLPoP " SDLPOP_VERSION;
 		"Questions? Visit https://forum.princed.org\n"
 		"\n"
 		"Press any key to continue...";*/
-		const char* splash_text_2 = 
-		"This is an alpha version of SDLPoP for Dreamcast\n"
-		"The game is functional but saving is not implemented yet\n"
-		"\n"
-		"Thanks for playing!\n\n"
-		"PRESS ANY BUTTON TO CONTINUE\n";
+const char *splash_text_2 =
+	"This is an alpha version of SDLPoP for Dreamcast\n"
+	"The game is functional but saving is not implemented yet\n"
+	"\n"
+	"Thanks for playing!\n\n"
+	"PRESS ANY BUTTON TO CONTINUE\n";
 
-void show_splash() {
-	if (!enable_info_screen || start_level >= 0) return;
+void show_splash()
+{
+	if (!enable_info_screen || start_level >= 0)
+		return;
 
-    //snd_stream_init();
-    //sndoggvorbis_init();
-	//sndoggvorbis_start("/cd/data/music/potion.ogg", 0);
-	//adx_dec( "/cd/data/music/adx/potion.adx", 0);
+	// snd_stream_init();
+	// sndoggvorbis_init();
+	// sndoggvorbis_start("/cd/data/music/potion.ogg", 0);
+	// adx_dec( "/cd/data/music/adx/potion.adx", 0);
 	sfxhnd_t beep1 = snd_sfx_load("/cd/data/music/wav_output/potion.wav");
 	snd_sfx_play(beep1, 255, 128);
 
@@ -2596,81 +2997,92 @@ void show_splash() {
 
 #ifdef USE_TEXT // Don't wait for a keypress if there is no text for the user to read.
 	int key = 0;
-	do {
+	do
+	{
 		idle();
 		key = key_test_quit();
 		bool joy_input = 0;
-		for (int i = 0; i < JOYINPUT_NUM; i++) {
-			if (joy_button_states[i] & KEYSTATE_HELD) {
+		for (int i = 0; i < JOYINPUT_NUM; i++)
+		{
+			if (joy_button_states[i] & KEYSTATE_HELD)
+			{
 				joy_input = 1;
 				break;
 			}
 		}
-		if (joy_input) {
-			for (int i = 0; i < JOYINPUT_NUM; i++) {
+		if (joy_input)
+		{
+			for (int i = 0; i < JOYINPUT_NUM; i++)
+			{
 				joy_button_states[i] = 0;
 			}
 			snd_sfx_stop_all();
-			//snd_sfx_unload(beep1);
+			// snd_sfx_unload(beep1);
 			snd_sfx_unload_all();
 			key_states[SDL_SCANCODE_LSHIFT] |= KEYSTATE_HELD; // close the splash screen using the gamepad
 		}
-		
+
 		delay_ticks(1);
 
-	} while(key == 0 && !(key_states[SDL_SCANCODE_LSHIFT] & KEYSTATE_HELD || key_states[SDL_SCANCODE_RSHIFT] & KEYSTATE_HELD));
+	} while (key == 0 && !(key_states[SDL_SCANCODE_LSHIFT] & KEYSTATE_HELD || key_states[SDL_SCANCODE_RSHIFT] & KEYSTATE_HELD));
 
-	if ((key & WITH_CTRL) || (enable_quicksave && key == SDL_SCANCODE_F9) || (enable_replay && key == SDL_SCANCODE_TAB)) {
+	if ((key & WITH_CTRL) || (enable_quicksave && key == SDL_SCANCODE_F9) || (enable_replay && key == SDL_SCANCODE_TAB))
+	{
 		extern int last_key_scancode; // defined in seg009.c
-		last_key_scancode = key; // can immediately do Ctrl+L, etc from the splash screen
+		last_key_scancode = key;	  // can immediately do Ctrl+L, etc from the splash screen
 	}
 	key_states[SDL_SCANCODE_LSHIFT] &= ~KEYSTATE_HELD; // don't immediately start the game if Shift was pressed!
 	key_states[SDL_SCANCODE_RSHIFT] &= ~KEYSTATE_HELD;
 #endif
 }
 
-const char* get_writable_file_path(char* custom_path_buffer, size_t max_len, const char* file_name) {
+const char *get_writable_file_path(char *custom_path_buffer, size_t max_len, const char *file_name)
+{
 	// If the SDLPOP_SAVE_PATH environment variable is set, put all saves into the directory it points to.
 	// Otherwise, save to the home directory
 #if defined WIN32 || _WIN32 || WIN64 || _WIN64 || DREAMCAST
-	const char* save_path = "/vmu/a1"; //getenv("SDLPOP_SAVE_PATH");
+	const char *save_path = "/vmu/a1"; // getenv("SDLPOP_SAVE_PATH");
 #else
 	char save_path[POP_MAX_PATH];
-	const char* custom_save_path = getenv("SDLPOP_SAVE_PATH");
-	const char* home_path = "/vmu/a1";//getenv("HOME");
+	const char *custom_save_path = getenv("SDLPOP_SAVE_PATH");
+	const char *home_path = "/vmu/a1"; // getenv("HOME");
 	if (custom_save_path != NULL && custom_save_path[0] != '\0')
 		snprintf_check(save_path, max_len, "%s", custom_save_path);
 	else if (home_path != NULL && home_path[0] != '\0')
 		snprintf_check(save_path, max_len, "%s%s", home_path, "");
 #endif
-	
+
 	printf("save_path: %s\n", save_path);
-	if (save_path != NULL && save_path[0] != '\0') {
+	if (save_path != NULL && save_path[0] != '\0')
+	{
 #if defined WIN32 || _WIN32 || WIN64 || _WIN64
-		mkdir (save_path);
+		mkdir(save_path);
 #else
-		mkdir (save_path, 0700);
+		mkdir(save_path, 0700);
 #endif
-		if (use_custom_levelset) {
+		if (use_custom_levelset)
+		{
 			// First create the directory...
 			snprintf_check(custom_path_buffer, max_len, "%s/%s", save_path, levelset_name);
 #if defined WIN32 || _WIN32 || WIN64 || _WIN64
-			mkdir (custom_path_buffer);
+			mkdir(custom_path_buffer);
 #else
-			mkdir (custom_path_buffer, 0700);
+			mkdir(custom_path_buffer, 0700);
 #endif
 			snprintf_check(custom_path_buffer, max_len, "%s/%s/%s", save_path, levelset_name, file_name);
-		} else {
+		}
+		else
+		{
 			snprintf_check(custom_path_buffer, max_len, "%s/%s", save_path, file_name);
 		}
 		return custom_path_buffer;
 	}
 
-	if (!use_custom_levelset) {
+	if (!use_custom_levelset)
+	{
 		return file_name;
 	}
 	// if playing a custom levelset, try to use the mod folder
 	snprintf_check(custom_path_buffer, max_len, "%s/%s", mod_data_path, file_name);
 	return custom_path_buffer;
 }
-
