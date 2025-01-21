@@ -2,7 +2,8 @@
 
 An open-source port of Prince of Persia, based on the disassembly of the DOS version, extended with new features for SEGA Dreamcast
 
-![image](https://github.com/user-attachments/assets/efb808b2-95d0-41cc-b56c-cd682c136105)
+<img src="https://github.com/user-attachments/assets/efb808b2-95d0-41cc-b56c-cd682c136105" alt="Alt Text" width="800" height="600">
+<img src="https://github.com/user-attachments/assets/ce477d53-3559-43ee-a23c-42377deac62b" alt="Alt Text" width="800" height="600">
 
 ## Building
 
