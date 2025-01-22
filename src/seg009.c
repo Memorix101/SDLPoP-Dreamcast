@@ -2769,6 +2769,7 @@ void set_gr_mode(byte grmode) {
 	                           pop_window_width, pop_window_height, flags);
 	// Make absolutely sure that VSync will be off, to prevent timer issues.
 	SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
+	//SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "software");
 	flags = 0;
 	switch (use_hardware_acceleration) {
 		case 0:  flags |= SDL_RENDERER_SOFTWARE;    break;
@@ -3700,11 +3701,18 @@ void process_events() {
 		joy_button_states[JOYINPUT_DPAD_DOWN] &= ~KEYSTATE_HELD; 
 	}
 
-	if (state->buttons & CONT_X) 
+	if (state->buttons & CONT_B) // picking up stuff / fighting
     {
  		joy_button_states[JOYINPUT_X] |= KEYSTATE_HELD | KEYSTATE_HELD_NEW;
     } else {
 		joy_button_states[JOYINPUT_X] &= ~KEYSTATE_HELD; 
+	}
+
+	if (state->buttons & CONT_X) 
+    {
+ 		joy_button_states[JOYINPUT_Y] |= KEYSTATE_HELD | KEYSTATE_HELD_NEW;
+    } else {
+		joy_button_states[JOYINPUT_Y] &= ~KEYSTATE_HELD; 
 	}
   }
 
@@ -3961,8 +3969,8 @@ void process_events() {
 #endif
 				if (event.type == SDL_JOYBUTTONDOWN) {
 							 printf("Button %d pressed.\n", event.jbutton.button);
-					if      (event.jbutton.button == SDL_JOYSTICK_BUTTON_Y)   joy_button_states[JOYINPUT_Y] |= KEYSTATE_HELD | KEYSTATE_HELD_NEW; // Y (up)
-					else if (event.jbutton.button == SDL_JOYSTICK_BUTTON_X)   joy_button_states[JOYINPUT_X] |= KEYSTATE_HELD | KEYSTATE_HELD_NEW;    // X (Shift)
+					if      (event.jbutton.button == SDL_JOYSTICK_BUTTON_Y)   joy_button_states[JOYINPUT_A] |= KEYSTATE_HELD | KEYSTATE_HELD_NEW; // Y (up)
+					else if (event.jbutton.button == SDL_JOYSTICK_BUTTON_X)   joy_button_states[JOYINPUT_Y] |= KEYSTATE_HELD | KEYSTATE_HELD_NEW;    // X (Shift)
 					if(event.jbutton.button == 3){ // dc start btn
 						last_key_scancode = SDL_SCANCODE_BACKSPACE;
 					}
@@ -3973,8 +3981,8 @@ void process_events() {
 				}
 				else if (event.type == SDL_JOYBUTTONUP) {
 								printf("SDL_JOYBUTTONUP\n");
-					if      (event.jbutton.button == SDL_JOYSTICK_BUTTON_Y)   joy_button_states[JOYINPUT_Y] &= ~KEYSTATE_HELD;  // Y (up)
-					else if (event.jbutton.button == SDL_JOYSTICK_BUTTON_X)   joy_button_states[JOYINPUT_X] &= ~KEYSTATE_HELD;    // X (Shift)
+					if      (event.jbutton.button == SDL_JOYSTICK_BUTTON_Y)   joy_button_states[JOYINPUT_A] &= ~KEYSTATE_HELD;  // Y (up)
+					else if (event.jbutton.button == SDL_JOYSTICK_BUTTON_X)   joy_button_states[JOYINPUT_Y] &= ~KEYSTATE_HELD;    // X (Shift)
 				}
 				break;
 
